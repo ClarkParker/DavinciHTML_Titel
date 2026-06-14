@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kinetic Typography Studio — UI Prototype</title>
+<style>
+  /* ============================================================
+     Kinetic Typography Studio — UI MOCKUP (Phase 2: UI)
+     Static, dependency-free. Placeholder animations only.
+     No real generation/export logic — this is about the UX/flow.
+     ============================================================ */
+  :root{
+    --bg:#0b0b0f; --bg2:#13131b; --card:#16161f; --line:#24242f;
+    --txt:#f4f4f8; --muted:#9a9aac; --accent:#ff3da6; --accent2:#36e2ff;
+    --grad:linear-gradient(90deg,var(--accent),var(--accent2));
+    --r:16px; --ease:cubic-bezier(.2,.7,.2,1);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:radial-gradient(1200px 700px at 80% -10%,#1c1430 0%,transparent 60%),
+                 radial-gradient(900px 600px at -10% 110%,#06283a 0%,transparent 55%),var(--bg);
+        color:var(--txt);min-height:100%;-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+  .hidden{display:none!important}
+
+  /* ---------- App chrome ---------- */
+  header.app{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);
+             position:sticky;top:0;backdrop-filter:blur(8px);background:rgba(11,11,15,.7);z-index:10}
+  .logo{font-weight:800;letter-spacing:.2px}
+  .logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .badge{font-size:11px;font-weight:700;color:#0b0b0f;background:var(--grad);padding:3px 8px;border-radius:999px}
+  .badge.free{background:#1f7a3d;color:#d7ffe6}
+  header .spacer{flex:1}
+  .steps{display:flex;gap:6px;font-size:12px;color:var(--muted)}
+  .steps .s{padding:5px 10px;border-radius:999px;border:1px solid var(--line)}
+  .steps .s.active{color:var(--txt);border-color:var(--accent);background:rgba(255,61,166,.08)}
+
+  main{max-width:1200px;margin:0 auto;padding:28px 22px 60px}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;border-radius:12px;font-weight:700;
+        background:var(--grad);color:#0b0b0f;transition:transform .15s var(--ease),filter .15s}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .muted{color:var(--muted)}
+
+  /* ---------- Screen: INPUT ---------- */
+  .hero{max-width:760px;margin:7vh auto 0;text-align:center}
+  .hero h1{font-size:clamp(28px,5vw,52px);line-height:1.05;margin:0 0 14px;letter-spacing:-.02em}
+  .hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);font-size:17px;margin:0 auto 30px;max-width:520px}
+  .inputwrap{position:relative;display:flex;gap:10px;background:var(--card);border:1px solid var(--line);
+             border-radius:18px;padding:10px;box-shadow:0 20px 60px -30px #000}
+  .inputwrap input{flex:1;background:transparent;border:none;outline:none;color:var(--txt);
+                   font-size:20px;padding:12px 14px}
+  .inputwrap input::placeholder{color:#55556a}
+  .opts{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:22px 0 6px}
+  .opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .chips{display:flex;gap:6px}
+  .chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .chip.on{color:var(--txt);border-color:var(--accent);background:rgba(255,61,166,.1)}
+  select{background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 10px}
+
+  /* ---------- Screen: GALLERY ---------- */
+  .galbar{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .galbar .line{font-size:15px;color:var(--muted)}
+  .galbar .line b{color:var(--txt)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .card{position:relative;background:
+        linear-gradient(0deg,rgba(0,0,0,.25),rgba(0,0,0,.25)),
+        repeating-conic-gradient(#1a1a22 0% 25%,#15151c 0% 50%) 0 0/22px 22px;
+        border:1px solid var(--line);border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;
+        display:flex;align-items:center;justify-content:center;transition:transform .18s var(--ease),border-color .18s}
+  .card:hover{transform:translateY(-3px);border-color:#3a3a4a}
+  .card .label{position:absolute;top:10px;left:12px;font-size:12px;font-weight:700;color:var(--muted);
+               text-transform:uppercase;letter-spacing:.08em}
+  .card .fav{position:absolute;top:8px;right:10px;font-size:15px;opacity:.5;transition:.15s}
+  .card .fav:hover,.card .fav.on{opacity:1;transform:scale(1.15)}
+  .card .edit{position:absolute;bottom:10px;right:12px;font-size:12px;font-weight:700;
+              background:rgba(0,0,0,.5);padding:6px 10px;border-radius:8px;opacity:0;transition:.18s}
+  .card:hover .edit{opacity:1}
+  .stage{font-weight:800;font-size:clamp(15px,2.4vw,26px);text-align:center;padding:0 14px;line-height:1.1}
+
+  /* ---------- per-character spans ---------- */
+  .ktext .ch{display:inline-block;white-space:pre}
+
+  /* ============ THE PLACEHOLDER "LOOKS" ============ */
+  /* Neon */
+  .look-neon{color:#fff;text-shadow:0 0 6px var(--accent),0 0 16px var(--accent),0 0 34px var(--accent)}
+  .look-neon .ch{animation:rise 3.6s var(--ease) infinite;animation-delay:calc(var(--i)*.05s)}
+  .look-neon.stage{animation:flicker 3.6s steps(20) infinite}
+  /* Chrome */
+  .look-chrome{background:linear-gradient(180deg,#fff,#9fb0c8 40%,#5a6b86 55%,#e8f0ff);
+               -webkit-background-clip:text;background-clip:text;color:transparent;
+               filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+  .look-chrome .ch{animation:rise 3.6s var(--ease) infinite;animation-delay:calc(var(--i)*.04s)}
+  /* Glitch */
+  .look-glitch{color:#fff}
+  .look-glitch .ch{animation:glitch 2.2s steps(8) infinite;animation-delay:calc(var(--i)*.03s)}
+  /* Particles (scatter-in; --dx/--dy set by JS) */
+  .look-particles{color:#fff}
+  .look-particles .ch{animation:scatter 3.8s var(--ease) infinite;animation-delay:calc(var(--i)*.03s)}
+  /* Brutalist */
+  .look-brutalist{color:#fff;font-weight:900;text-shadow:4px 4px 0 var(--accent)}
+  .look-brutalist .ch{animation:snap 3.4s steps(1) infinite;animation-delay:calc(var(--i)*.06s)}
+  /* Typewriter (whole line) */
+  .look-type{color:#caffd6;font-family:ui-monospace,Menlo,Consolas,monospace;border-right:2px solid #caffd6;
+             white-space:nowrap;overflow:hidden;animation:type 4s steps(22) infinite,caret .7s step-end infinite}
+  /* Retro 80s */
+  .look-retro{background:linear-gradient(180deg,#ff6ec7,#ffd24c);-webkit-background-clip:text;background-clip:text;
+              color:transparent;text-shadow:0 0 1px #ff6ec7}
+  .look-retro .ch{animation:wobble 3.4s ease-in-out infinite;animation-delay:calc(var(--i)*.05s)}
+  /* Bold Pop */
+  .look-pop{color:#fff}
+  .look-pop .ch{animation:pop 3s var(--ease) infinite;animation-delay:calc(var(--i)*.05s)}
+  /* Gradient slide */
+  .look-grad{background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent));
+             background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+             animation:slide 3.5s linear infinite}
+  .look-grad .ch{animation:rise 3.5s var(--ease) infinite;animation-delay:calc(var(--i)*.04s)}
+
+  @keyframes rise{0%{opacity:0;transform:translateY(14px)}18%,80%{opacity:1;transform:none}100%{opacity:1}}
+  @keyframes pop{0%{opacity:0;transform:scale(.3)}16%{opacity:1;transform:scale(1.18)}26%,80%{transform:scale(1)}100%{transform:scale(1)}}
+  @keyframes snap{0%,8%{opacity:0;transform:translateX(-8px)}10%,100%{opacity:1;transform:none}}
+  @keyframes scatter{0%{opacity:0;transform:translate(var(--dx,20px),var(--dy,-20px)) rotate(20deg)}
+                     22%,82%{opacity:1;transform:none}100%{opacity:1}}
+  @keyframes glitch{0%,100%{text-shadow:none;transform:none}
+    20%{text-shadow:-2px 0 var(--accent),2px 0 var(--accent2);transform:translateX(1px)}
+    40%{text-shadow:2px 0 var(--accent),-2px 0 var(--accent2);transform:translateX(-1px)}
+    60%{text-shadow:-1px 0 #fff,1px 0 var(--accent2)}}
+  @keyframes wobble{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-2deg)}}
+  @keyframes flicker{0%,19%,21%,55%,100%{opacity:1}20%,54%{opacity:.78}}
+  @keyframes type{0%{width:0}55%,100%{width:100%}}
+  @keyframes caret{50%{border-color:transparent}}
+  @keyframes slide{to{background-position:200% 0}}
+
+  /* ---------- Screen: REFINE ---------- */
+  .refine{display:grid;grid-template-columns:1fr 320px;gap:20px}
+  @media(max-width:860px){.refine{grid-template-columns:1fr}}
+  .preview{background:repeating-conic-gradient(#1a1a22 0% 25%,#15151c 0% 50%) 0 0/22px 22px;
+           border:1px solid var(--line);border-radius:var(--r);min-height:320px;
+           display:flex;align-items:center;justify-content:center;position:relative}
+  .preview .stage{font-size:clamp(22px,5vw,46px)}
+  .scrub{position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:10px}
+  .scrub input[type=range]{flex:1}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+  .panel h3{margin:2px 0 14px;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;margin-bottom:7px;color:var(--muted)}
+  .field input[type=range]{width:100%}
+  .swatches{display:flex;gap:8px}
+  .sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+  .sw.on{border-color:#fff}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg .chip{cursor:pointer}
+  .panel .row{display:flex;gap:8px;margin-top:8px}
+
+  /* ---------- Screen: EXPORT ---------- */
+  .export{display:grid;grid-template-columns:1fr 360px;gap:20px}
+  @media(max-width:860px){.export{grid-template-columns:1fr}}
+  .exrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .exrow:last-child{border-bottom:none}
+  .note{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+  .pill{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="logo">Kinetic Typography <b>Studio</b></div>
+  <span class="badge free">FREE</span>
+  <div class="spacer"></div>
+  <nav class="steps" id="steps">
+    <span class="s" data-step="input">1 · Input</span>
+    <span class="s" data-step="gallery">2 · Looks</span>
+    <span class="s" data-step="refine">3 · Refine</span>
+    <span class="s" data-step="export">4 · Export</span>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ INPUT ============ -->
+  <section id="screen-input" class="screen">
+    <div class="hero">
+      <h1>Type one line.<br>Get a wall of <em>animated looks.</em></h1>
+      <p>Drop in a lyric, hook, or quote — pick your favorite style — send it straight to your edit. No motion‑design skills needed.</p>
+      <div class="inputwrap">
+        <input id="lineInput" type="text" value="We could be heroes" placeholder="Enter your lyric…" />
+        <button class="btn" onclick="generate()">Generate looks ✨</button>
+      </div>
+      <div class="opts">
+        <div class="opt">Duration
+          <div class="chips" data-group="dur">
+            <span class="chip">2s</span><span class="chip on">3s</span><span class="chip">5s</span>
+          </div>
+        </div>
+        <div class="opt">Format
+          <div class="chips" data-group="ar">
+            <span class="chip on">16:9</span><span class="chip">9:16</span><span class="chip">1:1</span>
+          </div>
+        </div>
+        <div class="opt">Vibe
+          <select id="vibe"><option>Auto</option><option>Energetic</option><option>Dreamy</option><option>Aggressive</option><option>Elegant</option></select>
+        </div>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:26px">Works with any DaVinci Resolve — free or Studio. 100% free to use.</p>
+    </div>
+  </section>
+
+  <!-- ============ GALLERY ============ -->
+  <section id="screen-gallery" class="screen hidden">
+    <div class="galbar">
+      <button class="btn ghost" onclick="show('input')">← Edit line</button>
+      <div class="line">Looks for “<b id="galLine">We could be heroes</b>”</div>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn ghost" onclick="generate()">↻ Regenerate</button>
+    </div>
+    <div class="grid" id="grid"><!-- cards injected by JS --></div>
+  </section>
+
+  <!-- ============ REFINE ============ -->
+  <section id="screen-refine" class="screen hidden">
+    <div class="galbar">
+      <button class="btn ghost" onclick="show('gallery')">← Back to looks</button>
+      <div class="line">Refining <b id="refName">Neon</b></div>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn" onclick="show('export')">Export →</button>
+    </div>
+    <div class="refine">
+      <div class="preview">
+        <div class="stage ktext" id="refStage"></div>
+        <div class="scrub">
+          <button class="btn ghost" onclick="replay()" style="padding:8px 12px">▷</button>
+          <input type="range" min="0" max="100" value="40" />
+          <span class="muted" style="font-size:12px">0:01 / 0:03</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Style knobs</h3>
+        <div class="field"><label>Speed</label><input type="range" min="0" max="100" value="55" oninput="setSpeed(this.value)"></div>
+        <div class="field"><label>Intensity</label><input type="range" min="0" max="100" value="70"></div>
+        <div class="field"><label>Color</label>
+          <div class="swatches" id="swatches">
+            <span class="sw on" style="background:#ff3da6" data-c="#ff3da6"></span>
+            <span class="sw" style="background:#36e2ff" data-c="#36e2ff"></span>
+            <span class="sw" style="background:#9b5cff" data-c="#9b5cff"></span>
+            <span class="sw" style="background:#4cff9e" data-c="#4cff9e"></span>
+            <span class="sw" style="background:#ffd24c" data-c="#ffd24c"></span>
+          </div>
+        </div>
+        <div class="field"><label>Font</label>
+          <div class="seg"><span class="chip on">Sans</span><span class="chip">Display</span><span class="chip">Mono</span><span class="chip">Hand</span></div>
+        </div>
+        <div class="field"><label>In / Out</label>
+          <div class="seg"><span class="chip on">Rise</span><span class="chip">Pop</span><span class="chip">Wipe</span><span class="chip">Fade</span></div>
+        </div>
+        <div class="row">
+          <button class="btn ghost" style="flex:1" onclick="surprise()">🎲 Surprise me</button>
+          <button class="btn ghost" style="flex:1">⧉ Duplicate</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXPORT ============ -->
+  <section id="screen-export" class="screen hidden">
+    <div class="galbar">
+      <button class="btn ghost" onclick="show('refine')">← Back to refine</button>
+      <div class="line">Export</div>
+    </div>
+    <div class="export">
+      <div class="preview" style="min-height:260px"><div class="stage ktext look-neon" id="exStage"></div></div>
+      <div class="panel">
+        <h3>Export options</h3>
+        <div class="exrow"><span>Format</span><select><option>OGraf package (.ograf.zip)</option><option>ProRes 4444 (alpha)</option><option>PNG sequence (alpha)</option><option>WebM (alpha)</option></select></div>
+        <div class="exrow"><span>Resolution</span><select><option>1080p</option><option>4K</option><option>720p</option></select></div>
+        <div class="exrow"><span>Frame rate</span><select><option>30</option><option>24</option><option>25</option><option>60</option></select></div>
+        <div class="exrow"><span>Duration</span><span class="muted">3.0 s</span></div>
+        <div class="exrow"><span>Transparent (alpha)</span><span class="pill">ON</span></div>
+        <button class="btn" style="width:100%;justify-content:center;margin-top:16px">⬇ Download</button>
+        <button class="btn ghost" style="width:100%;justify-content:center;margin-top:10px" disabled>⚡ Send to Resolve timeline · Studio</button>
+        <p class="note">Free: download and drag into the DaVinci Resolve Media Pool. <br>Studio (later): one‑click live placement on the timeline.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ---- placeholder look catalog ----
+  const LOOKS = [
+    ["neon","Neon"],["chrome","Chrome"],["glitch","Glitch"],
+    ["particles","Particles"],["brutalist","Brutalist"],["type","Typewriter"],
+    ["retro","Retro"],["pop","Bold Pop"],["grad","Gradient"]
+  ];
+  let lineText = "We could be heroes";
+  let currentLook = "neon";
+
+  function splitInto(el, text, scatter){
+    el.innerHTML = "";
+    [...text].forEach((ch,i)=>{
+      const s=document.createElement("span");
+      s.className="ch"; s.style.setProperty("--i",i);
+      if(scatter){ s.style.setProperty("--dx",(Math.random()*80-40).toFixed(0)+"px");
+                   s.style.setProperty("--dy",(Math.random()*80-40).toFixed(0)+"px"); }
+      s.textContent = ch===" " ? " " : ch;
+      el.appendChild(s);
+    });
+  }
+
+  function buildGrid(){
+    const grid=document.getElementById("grid"); grid.innerHTML="";
+    LOOKS.forEach(([key,name])=>{
+      const card=document.createElement("div"); card.className="card";
+      const isType = key==="type";
+      const stageClass = isType ? "stage look-type" : "stage ktext look-"+key;
+      card.innerHTML =
+        `<span class="label">${name}</span>`+
+        `<span class="fav" title="favorite" onclick="this.classList.toggle('on')">♥</span>`+
+        `<div class="${stageClass}"></div>`+
+        `<button class="edit" onclick="openRefine('${key}','${name}')">Edit →</button>`;
+      grid.appendChild(card);
+      const stage=card.querySelector(".stage");
+      if(isType){ stage.textContent=lineText; }
+      else { splitInto(stage, lineText, key==="particles"); }
+    });
+  }
+
+  function generate(){
+    lineText = (document.getElementById("lineInput").value || "Your lyric here").trim();
+    document.getElementById("galLine").textContent = lineText;
+    buildGrid();
+    show("gallery");
+  }
+
+  function openRefine(key,name){
+    currentLook=key;
+    document.getElementById("refName").textContent=name;
+    const st=document.getElementById("refStage");
+    st.className = key==="type" ? "stage look-type" : "stage ktext look-"+key;
+    if(key==="type"){ st.textContent=lineText; } else { splitInto(st,lineText,key==="particles"); }
+    show("refine");
+  }
+  function replay(){ const s=document.getElementById("refStage"); openRefine(currentLook,document.getElementById("refName").textContent); }
+  function setSpeed(v){ const s=document.getElementById("refStage");
+    s.style.animationDuration=(6-(v/100)*4)+"s";
+    s.querySelectorAll(".ch").forEach(c=>c.style.animationDuration=(6-(v/100)*4)+"s"); }
+  function surprise(){ const r=LOOKS[Math.floor(Math.random()*LOOKS.length)]; openRefine(r[0],r[1]); }
+
+  document.getElementById("swatches")?.addEventListener("click",e=>{
+    const sw=e.target.closest(".sw"); if(!sw)return;
+    document.querySelectorAll("#swatches .sw").forEach(x=>x.classList.remove("on"));
+    sw.classList.add("on"); document.documentElement.style.setProperty("--accent",sw.dataset.c);
+  });
+  // chip toggles (visual only)
+  document.querySelectorAll(".chips,.seg").forEach(g=>g.addEventListener("click",e=>{
+    const c=e.target.closest(".chip"); if(!c)return;
+    [...g.querySelectorAll(".chip")].forEach(x=>x.classList.remove("on")); c.classList.add("on");
+  }));
+
+  function show(step){
+    ["input","gallery","refine","export"].forEach(s=>{
+      document.getElementById("screen-"+s).classList.toggle("hidden", s!==step);
+      document.querySelector(`.steps .s[data-step="${s}"]`)?.classList.toggle("active", s===step);
+    });
+    if(step==="export"){ const st=document.getElementById("exStage");
+      st.className = currentLook==="type" ? "stage look-type" : "stage ktext look-"+currentLook;
+      if(currentLook==="type") st.textContent=lineText; else splitInto(st,lineText,currentLook==="particles"); }
+    window.scrollTo(0,0);
+  }
+
+  // init (supports ?screen=gallery for screenshots/deep-links)
+  buildGrid();
+  const start=new URLSearchParams(location.search).get("screen")||"input";
+  show(start);
+</script>
+</body>
+</html>
