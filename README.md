@@ -9,6 +9,8 @@ A web tool (English UI) that turns **one song lyric line** into **multiple anima
 
 ## Documentation
 
+- **[`docs/03-concept.md`](docs/03-concept.md)** — **Concept v0.1**: the product vision, target user, the
+  Hybrid generate‑then‑refine flow, screen map, preset system, and v1 scope. *(Phase 1 — start here.)*
 - **[`docs/01-research-feature-and-tooling.md`](docs/01-research-feature-and-tooling.md)** —
   Research Dossier #1: the feature catalog (must‑have vs. nice‑to‑have for animating text) and the
   landscape of adaptable open‑source projects, with a recommended stack and a PoC milestone.
