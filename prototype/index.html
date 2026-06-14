@@ -9,12 +9,9 @@
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
 <style>
 /* =====================================================================
-   KINETIC TYPOGRAPHY STUDIO — premium landing (Phase 2: UI redesign)
-   Visual system: warm espresso base + single champagne-gold accent.
-   Type: Clash Display (display) + Satoshi (body).
-   Motion: Lenis smooth-scroll + GSAP ScrollTrigger (parallax/reveal),
-   masked word reveals, magnetic CTA, custom cursor, marquee, grain, aurora.
-   Resilient: content is visible without JS; libraries only enhance.
+   KINETIC TYPOGRAPHY STUDIO — single-file premium prototype (Phase 2 UI)
+   Landing + App in one file. Warm espresso + champagne-gold.
+   Clash Display + Satoshi. Lenis + GSAP motion. App works without JS libs.
    ===================================================================== */
 :root{
   --bg:#0E0D0B; --bg2:#13110E; --surface:#16140F; --elevated:#1C1917;
@@ -26,62 +23,48 @@
   --maxw:1180px; --e:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-html.has-smooth{scroll-behavior:auto}
-body{
-  background:var(--bg); color:var(--txt); font-family:var(--sans);
-  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:17px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 ::selection{background:var(--gold);color:#0E0D0B}
 
-/* ---------- atmosphere: aurora orbs + grain ---------- */
+/* atmosphere */
 .bgwrap{position:fixed;inset:0;z-index:-2;overflow:hidden;background:
   radial-gradient(1100px 700px at 78% -8%, #1a140d 0%, transparent 60%),
   radial-gradient(900px 600px at -8% 108%, #14120e 0%, transparent 55%), var(--bg)}
 .orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.5;will-change:transform}
-.orb.a{width:560px;height:560px;left:-120px;top:-140px;
-  background:radial-gradient(circle, #c79a5e88, transparent 70%);animation:drift1 26s ease-in-out infinite}
-.orb.b{width:480px;height:480px;right:-100px;top:30%;
-  background:radial-gradient(circle, #9a7b4e66, transparent 70%);animation:drift2 32s ease-in-out infinite}
-.orb.c{width:420px;height:420px;left:30%;bottom:-160px;
-  background:radial-gradient(circle, #e3cba055, transparent 70%);animation:drift1 38s ease-in-out infinite reverse}
-@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
-@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,30px)}}
+.orb.a{width:580px;height:580px;left:-120px;top:-140px;background:radial-gradient(circle,#c79a5e88,transparent 70%);animation:drift1 24s ease-in-out infinite}
+.orb.b{width:500px;height:500px;right:-100px;top:28%;background:radial-gradient(circle,#9a7b4e66,transparent 70%);animation:drift2 30s ease-in-out infinite}
+.orb.c{width:440px;height:440px;left:28%;bottom:-160px;background:radial-gradient(circle,#e3cba055,transparent 70%);animation:drift1 36s ease-in-out infinite reverse}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,46px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-56px,34px)}}
 .grain{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-/* ---------- custom cursor ---------- */
-.cursor,.cursor-dot{position:fixed;top:0;left:0;z-index:9999;pointer-events:none;border-radius:50%;
-  transform:translate(-50%,-50%);mix-blend-mode:difference}
+/* cursor */
+.cursor,.cursor-dot{position:fixed;top:0;left:0;z-index:10000;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference}
 .cursor{width:34px;height:34px;border:1px solid rgba(244,239,230,.6);transition:width .25s,height .25s,background .25s}
 .cursor-dot{width:5px;height:5px;background:var(--gold2)}
-.cursor.grow{width:64px;height:64px;background:rgba(244,239,230,.08);border-color:transparent}
+.cursor.grow{width:66px;height:66px;background:rgba(244,239,230,.08);border-color:transparent}
 @media (pointer:coarse){.cursor,.cursor-dot{display:none}}
 
-/* ---------- layout helpers ---------- */
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
-.eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
-.muted{color:var(--muted)}
-section{position:relative;padding:130px 0}
-h2.h{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5vw,60px);line-height:1.02;letter-spacing:-.025em}
+/* scroll progress */
+.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));z-index:101}
 
-/* ---------- nav ---------- */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:14px;
-  padding:18px 28px;backdrop-filter:blur(14px) saturate(160%);
-  background:linear-gradient(180deg,rgba(14,13,11,.7),rgba(14,13,11,.15));border-bottom:1px solid var(--hair)}
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:14px;padding:18px 28px;
+  backdrop-filter:blur(14px) saturate(160%);background:linear-gradient(180deg,rgba(14,13,11,.7),rgba(14,13,11,.12));border-bottom:1px solid var(--hair)}
 nav .brand{font-family:var(--disp);font-weight:600;letter-spacing:-.01em;font-size:18px}
 nav .brand .k{color:var(--gold)}
-nav .pill{font-size:11px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:var(--gold);
-  padding:3px 9px;border-radius:999px}
+nav .pill{font-size:11px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:var(--gold);padding:3px 9px;border-radius:999px}
 nav .sp{flex:1}
 nav .navlink{font-size:14px;color:var(--muted);padding:8px 12px}
 nav .navlink:hover{color:var(--txt)}
 
-/* ---------- buttons ---------- */
-.btn{position:relative;display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;
-  padding:15px 26px;border-radius:999px;will-change:transform}
+/* buttons */
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;padding:15px 26px;border-radius:999px;will-change:transform}
 .btn.gold{background:var(--gold);color:#0E0D0B}
 .btn.gold:hover{background:var(--gold2)}
 .btn.ghost{border:1px solid var(--line);color:var(--txt)}
@@ -89,81 +72,67 @@ nav .navlink:hover{color:var(--txt)}
 .btn .a{transition:transform .3s var(--e)}
 .btn:hover .a{transform:translateX(4px)}
 
-/* ---------- HERO ---------- */
-.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  padding:140px 0 70px;text-align:center;position:relative}
-.hero .ghostwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  z-index:-1;pointer-events:none;overflow:hidden}
-.hero .ghostword{font-family:var(--disp);font-weight:700;font-size:34vw;color:#fff;opacity:.018;
-  white-space:nowrap;letter-spacing:-.04em;will-change:transform}
-.hero h1{font-family:var(--disp);font-weight:600;letter-spacing:-.035em;line-height:.98;
-  font-size:clamp(44px,9vw,116px);margin:22px auto 0;max-width:14ch}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.muted{color:var(--muted)}
+section{position:relative;padding:130px 0}
+h2.h{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5vw,60px);line-height:1.02;letter-spacing:-.025em}
+
+/* hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 0 70px;text-align:center;position:relative}
+.hero .ghostwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:-1;pointer-events:none;overflow:hidden}
+.hero .ghostword{font-family:var(--disp);font-weight:700;font-size:34vw;color:#fff;opacity:.018;white-space:nowrap;letter-spacing:-.04em;will-change:transform}
+.hero h1{font-family:var(--disp);font-weight:600;letter-spacing:-.035em;line-height:.98;font-size:clamp(44px,9vw,116px);margin:22px auto 0;max-width:14ch}
 .hero h1 .accent{color:var(--gold)}
 .hero p.sub{max-width:600px;margin:30px auto 0;font-size:clamp(16px,2vw,20px);color:var(--muted)}
 .hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:42px}
-.hero .scrollcue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
-  font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
-.hero .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:10px auto 0;
-  background:linear-gradient(var(--gold),transparent);animation:cue 1.8s ease-in-out infinite}
+.hero .scrollcue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.hero .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:10px auto 0;background:linear-gradient(var(--gold),transparent);animation:cue 1.8s ease-in-out infinite}
 @keyframes cue{0%,100%{opacity:.2;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
 
-/* ---------- live preview stage (the product demoing itself) ---------- */
 .stagecard{max-width:880px;margin:60px auto 0;border:1px solid var(--line);border-radius:22px;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),
-  repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/26px 26px;
-  box-shadow:0 50px 120px -50px #000, inset 0 1px 0 rgba(255,255,255,.04);
-  aspect-ratio:16/7;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.stagecard .cap{position:absolute;top:14px;left:18px;font-size:11px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--faint)}
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/26px 26px;
+  box-shadow:0 50px 120px -50px #000,inset 0 1px 0 rgba(255,255,255,.04);aspect-ratio:16/7;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;will-change:transform}
+.stagecard .cap{position:absolute;top:14px;left:18px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);z-index:3}
 .stagecard .cap b{color:var(--gold)}
-.stage{font-family:var(--disp);font-weight:700;font-size:clamp(26px,6vw,64px);text-align:center;
-  line-height:1.04;letter-spacing:-.01em;padding:0 18px}
-.stage .ch{display:inline-block;white-space:pre}
+.stage{font-family:var(--disp);font-weight:700;font-size:clamp(26px,6vw,64px);text-align:center;line-height:1.04;letter-spacing:-.01em;padding:0 18px}
+.stage .ch,.demo .ch{display:inline-block;white-space:pre}
 
-/* ---------- marquee ---------- */
+/* marquee */
 .marquee{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:26px 0;overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.marquee .mq-inner{will-change:transform}
 .marquee .track{display:flex;gap:46px;width:max-content;animation:marq 28s linear infinite}
 .marquee:hover .track{animation-play-state:paused}
-.marquee .item{font-family:var(--disp);font-weight:500;font-size:30px;color:var(--muted);
-  display:flex;align-items:center;gap:46px;letter-spacing:-.01em}
+.marquee .item{font-family:var(--disp);font-weight:500;font-size:30px;color:var(--muted);display:flex;align-items:center;gap:46px;letter-spacing:-.01em}
 .marquee .item::after{content:"✦";color:var(--gold);font-size:16px}
 @keyframes marq{to{transform:translateX(-50%)}}
 
-/* ---------- showcase grid ---------- */
+/* showcase */
 .showhead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:46px;flex-wrap:wrap}
 .showhead p{max-width:420px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 @media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.grid{grid-template-columns:1fr}}
-.card{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/10;
-  display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;
-  background:repeating-conic-gradient(#181610 0% 25%,#141209 0% 50%) 0 0/22px 22px}
-.card .lbl{position:absolute;top:12px;left:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--muted);font-weight:600;z-index:2}
+.card-wrap{will-change:transform,opacity}
+.card{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(#181610 0% 25%,#141209 0% 50%) 0 0/22px 22px;transform-style:preserve-3d;transition:border-color .2s}
+.card:hover{border-color:var(--gold)}
+.card .lbl{position:absolute;top:12px;left:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;z-index:2}
 .card .num{position:absolute;bottom:10px;right:14px;font-family:var(--disp);color:var(--faint);font-size:13px}
 .card .demo{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.5vw,28px);text-align:center;padding:0 14px}
-.card .demo .ch{display:inline-block;white-space:pre}
 
-/* ---------- the LOOKS (premium-tuned placeholders) ---------- */
+/* looks */
 .look-neon{color:#fff;text-shadow:0 0 7px var(--gold),0 0 18px #ff5fae,0 0 36px #ff5fae}
 .look-chrome{background:linear-gradient(180deg,#fff,#cdb691 42%,#8a7a5f 56%,#f1e6cf);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .look-glitch .ch{animation:glitch 2.4s steps(9) infinite;animation-delay:calc(var(--i)*.03s);color:#fff}
 .look-particles .ch{animation:scatter 4s var(--e) infinite;animation-delay:calc(var(--i)*.03s);color:#fff}
 .look-brutalist{color:#fff;font-weight:700;text-shadow:4px 4px 0 var(--gold)}
-.look-type{color:var(--gold2);font-family:ui-monospace,Menlo,monospace;font-size:clamp(15px,2.2vw,24px);
-  border-right:2px solid var(--gold2);white-space:nowrap;overflow:hidden;width:max-content;
-  animation:type 4.5s steps(20) infinite,caret .7s step-end infinite}
+.look-type{color:var(--gold2);font-family:ui-monospace,Menlo,monospace;font-size:clamp(15px,2.2vw,24px);border-right:2px solid var(--gold2);white-space:nowrap;overflow:hidden;width:max-content;animation:type 4.5s steps(20) infinite,caret .7s step-end infinite}
 .look-retro{background:linear-gradient(180deg,#ffd27a,#e08bb0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .look-pop .ch{animation:pop 3s var(--e) infinite;animation-delay:calc(var(--i)*.05s);color:#fff}
-.look-grad{background:linear-gradient(90deg,var(--gold),#ff9ec4,var(--gold2),var(--gold));background-size:200% 100%;
-  -webkit-background-clip:text;background-clip:text;color:transparent;animation:slide 4s linear infinite}
-.look-serif{color:var(--champ);font-style:italic}
-.look-serif .ch{animation:rise 3.6s var(--e) infinite;animation-delay:calc(var(--i)*.05s)}
-/* shared char entrances for looks that opt in */
-.look-neon .ch,.look-chrome .ch,.look-brutalist .ch,.look-retro .ch,.look-grad .ch{
-  animation:rise 3.6s var(--e) infinite;animation-delay:calc(var(--i)*.045s)}
+.look-grad{background:linear-gradient(90deg,var(--gold),#ff9ec4,var(--gold2),var(--gold));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:slide 4s linear infinite}
+.look-neon .ch,.look-chrome .ch,.look-brutalist .ch,.look-retro .ch,.look-grad .ch{animation:rise 3.6s var(--e) infinite;animation-delay:calc(var(--i)*.045s)}
 @keyframes rise{0%{opacity:0;transform:translateY(16px)}18%,82%{opacity:1;transform:none}100%{opacity:1}}
 @keyframes pop{0%{opacity:0;transform:scale(.3)}15%{opacity:1;transform:scale(1.16)}26%,82%{transform:scale(1)}100%{transform:scale(1)}}
 @keyframes scatter{0%{opacity:0;transform:translate(var(--dx,18px),var(--dy,-18px)) rotate(16deg)}24%,82%{opacity:1;transform:none}100%{opacity:1}}
@@ -172,53 +141,98 @@ nav .navlink:hover{color:var(--txt)}
 @keyframes caret{50%{border-color:transparent}}
 @keyframes slide{to{background-position:200% 0}}
 
-/* ---------- steps ---------- */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--hair)}
+/* steps / band / footer */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--hair)}
 @media(max-width:760px){.steps{grid-template-columns:1fr}}
 .step{padding:38px 30px;border-right:1px solid var(--hair)}
 .step:last-child{border-right:none}
 .step .n{font-family:var(--disp);font-size:54px;font-weight:600;color:var(--gold);line-height:1;letter-spacing:-.03em}
-.step h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:18px 0 8px;letter-spacing:-.01em}
+.step h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:18px 0 8px}
 .step p{color:var(--muted);font-size:15px}
-
-/* ---------- free band ---------- */
-.band{border:1px solid var(--line);border-radius:24px;padding:56px;text-align:center;
-  background:linear-gradient(180deg,rgba(212,165,116,.06),rgba(255,255,255,0));position:relative;overflow:hidden}
+.band{border:1px solid var(--line);border-radius:24px;padding:56px;text-align:center;background:linear-gradient(180deg,rgba(212,165,116,.06),rgba(255,255,255,0));overflow:hidden}
 .band h2{font-family:var(--disp);font-weight:600;font-size:clamp(28px,5vw,52px);letter-spacing:-.025em;line-height:1.02}
 .band p{max-width:520px;margin:18px auto 30px;color:var(--muted)}
 .tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
 .tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
 .tag b{color:var(--gold)}
-
-/* ---------- footer ---------- */
 footer{border-top:1px solid var(--hair);padding:40px 0;color:var(--faint);font-size:13px}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.reveal{will-change:opacity}
 
-/* ---------- reveal base (JS sets from-state only if GSAP present) ---------- */
-.reveal{will-change:transform,opacity}
+/* ===================== APP overlay ===================== */
+.wipe{position:fixed;inset:0;z-index:600;background:var(--gold);transform:scaleY(0);transform-origin:50% 100%;pointer-events:none}
+#app{position:fixed;inset:0;z-index:550;background:
+  radial-gradient(1000px 600px at 80% -10%,#1a140d,transparent 60%),var(--bg);
+  display:none;flex-direction:column;overflow:hidden}
+#app.on{display:flex}
+.apphead{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--hair);backdrop-filter:blur(8px)}
+.apphead .brand{font-family:var(--disp);font-weight:600;font-size:16px}.apphead .brand .k{color:var(--gold)}
+.apphead .sp{flex:1}
+.appsteps{display:flex;gap:6px;font-size:12px;color:var(--muted)}
+.appsteps .s{padding:6px 11px;border-radius:999px;border:1px solid var(--hair)}
+.appsteps .s.active{color:var(--txt);border-color:var(--gold);background:rgba(212,165,116,.1)}
+.appbody{flex:1;overflow:auto;padding:34px 26px 60px}
+.appbody .inner{max-width:1100px;margin:0 auto}
+.ascreen{display:none;animation:fadein .5s var(--e)}
+.ascreen.on{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}
-  .orb{animation:none}
-}
+.ihero{max-width:760px;margin:5vh auto 0;text-align:center}
+.ihero h1{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5.5vw,60px);letter-spacing:-.03em;line-height:1.02}
+.ihero h1 em{font-style:normal;color:var(--gold)}
+.ihero p{color:var(--muted);margin:16px auto 28px;max-width:480px}
+.inputwrap{display:flex;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 30px 80px -40px #000}
+.inputwrap input{flex:1;background:transparent;border:none;outline:none;color:var(--txt);font-size:19px;padding:12px 14px;font-family:var(--sans)}
+.inputwrap input::placeholder{color:var(--faint)}
+.opts{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:22px 0}
+.opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.chips{display:flex;gap:6px}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--muted);cursor:pointer}
+.chip.on{color:#0E0D0B;border-color:var(--gold);background:var(--gold)}
+select{background:var(--elevated);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 10px;font-family:var(--sans)}
+
+.galbar{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.galbar .ln{color:var(--muted)}.galbar .ln b{color:var(--txt)}
+
+.refine{display:grid;grid-template-columns:1fr 320px;gap:20px}
+@media(max-width:860px){.refine{grid-template-columns:1fr}}
+.preview{background:repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/24px 24px;border:1px solid var(--line);border-radius:16px;min-height:340px;display:flex;align-items:center;justify-content:center;position:relative}
+.preview .stage{font-size:clamp(22px,5vw,48px)}
+.scrub{position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:10px}
+.scrub input[type=range]{flex:1;accent-color:var(--gold)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.panel h3{margin:2px 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;margin-bottom:7px;color:var(--muted)}
+.field input[type=range]{width:100%;accent-color:var(--gold)}
+.swatches{display:flex;gap:8px}.sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}.sw.on{border-color:#fff}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.prow{display:flex;gap:8px;margin-top:8px}
+.exrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--hair)}
+.exrow:last-child{border-bottom:none}
+.export{display:grid;grid-template-columns:1fr 360px;gap:20px}
+@media(max-width:860px){.export{grid-template-columns:1fr}}
+.note{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+.pill2{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:var(--gold)}
+
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}.orb{animation:none}}
 </style>
 </head>
 <body>
 <div class="bgwrap"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
 <div class="grain"></div>
 <div class="cursor"></div><div class="cursor-dot"></div>
+<div class="progress" id="progress"></div>
 
 <nav>
   <span class="brand"><span class="k">◆</span> Kinetic Typography Studio</span>
-  <span class="pill">FREE</span>
-  <span class="sp"></span>
+  <span class="pill">FREE</span><span class="sp"></span>
   <a class="navlink" href="#looks">Looks</a>
   <a class="navlink" href="#how">How it works</a>
-  <a class="btn ghost magnetic" href="app.html" style="padding:10px 18px">Launch app</a>
+  <button class="btn ghost magnetic" style="padding:10px 18px" data-launch>Launch app</button>
 </nav>
 
 <main>
-  <!-- ============ HERO ============ -->
   <header class="hero">
     <div class="ghostwrap"><div class="ghostword" data-parallax data-speed="22">HEROES</div></div>
     <div class="wrap">
@@ -227,12 +241,10 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-
       <p class="sub reveal">Type your line, pick a style, drop it straight into DaVinci Resolve.
         No motion‑design skills. Beautifully animated. <b style="color:var(--txt)">Free for everyone.</b></p>
       <div class="cta reveal">
-        <a class="btn gold magnetic" href="app.html">Launch the studio <span class="a">→</span></a>
+        <button class="btn gold magnetic" data-launch>Launch the studio <span class="a">→</span></button>
         <a class="btn ghost magnetic" href="#looks">See it move</a>
       </div>
-
-      <!-- live self-demo -->
-      <div class="stagecard reveal" data-tilt>
+      <div class="stagecard" id="heroCard" data-tilt>
         <div class="cap">Live preview · <b id="capName">Neon</b></div>
         <div class="stage" id="heroStage"></div>
       </div>
@@ -240,196 +252,222 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-
     <div class="scrollcue">Scroll</div>
   </header>
 
-  <!-- ============ MARQUEE ============ -->
-  <div class="marquee" aria-hidden="true">
-    <div class="track">
-      <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span>
-      <span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span>
-      <span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
-      <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span>
-      <span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span>
-      <span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
-    </div>
-  </div>
+  <div class="marquee" aria-hidden="true"><div class="mq-inner"><div class="track">
+    <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span><span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span><span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
+    <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span><span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span><span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
+  </div></div></div>
 
-  <!-- ============ SHOWCASE ============ -->
   <section id="looks">
     <div class="wrap">
       <div class="showhead">
         <h2 class="h reveal-words">Nine signature looks.<br>One click each.</h2>
-        <p class="muted reveal">Every style re‑skins the exact same line — no two are alike.
-          Pick a vibe, fine‑tune a few knobs, export. The hard part is already done.</p>
+        <p class="muted reveal">Every style re‑skins the exact same line — no two are alike. Pick a vibe, fine‑tune a few knobs, export. The hard part is already done.</p>
       </div>
       <div class="grid" id="grid"></div>
     </div>
   </section>
 
-  <!-- ============ HOW IT WORKS ============ -->
   <section id="how" style="padding-top:40px">
     <div class="wrap">
       <div class="eyebrow reveal" style="margin-bottom:22px">How it works</div>
       <div class="steps">
-        <div class="step reveal"><div class="n">01</div><h3>Type one line</h3>
-          <p>Drop in a lyric, hook, or quote. That's the whole setup.</p></div>
-        <div class="step reveal"><div class="n">02</div><h3>Pick a look</h3>
-          <p>Get a wall of animated styles instantly. Refine with a few simple knobs.</p></div>
-        <div class="step reveal"><div class="n">03</div><h3>Send to your edit</h3>
-          <p>Export with transparency and drag it straight into DaVinci Resolve.</p></div>
+        <div class="step reveal"><div class="n">01</div><h3>Type one line</h3><p>Drop in a lyric, hook, or quote. That's the whole setup.</p></div>
+        <div class="step reveal"><div class="n">02</div><h3>Pick a look</h3><p>Get a wall of animated styles instantly. Refine with a few simple knobs.</p></div>
+        <div class="step reveal"><div class="n">03</div><h3>Send to your edit</h3><p>Export with transparency and drag it straight into DaVinci Resolve.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ FREE BAND ============ -->
   <section style="padding-top:0">
-    <div class="wrap">
-      <div class="band reveal">
-        <h2>Made to be shared.<br>Free for everyone.</h2>
-        <p>Works with any DaVinci Resolve — free or Studio. No watermark, no paywall, no sign‑up wall.
-          This is our chance to make something genuinely good — and give it away.</p>
-        <a class="btn gold magnetic" href="app.html">Open the studio <span class="a">→</span></a>
-        <div class="tags">
-          <span class="tag"><b>OGraf</b> + Lottie export</span>
-          <span class="tag"><b>Alpha</b> / transparent</span>
-          <span class="tag"><b>1080p</b> · 4K</span>
-          <span class="tag"><b>Studio:</b> live timeline sync</span>
-        </div>
-      </div>
-    </div>
+    <div class="wrap"><div class="band reveal">
+      <h2>Made to be shared.<br>Free for everyone.</h2>
+      <p>Works with any DaVinci Resolve — free or Studio. No watermark, no paywall, no sign‑up wall. This is our chance to make something genuinely good — and give it away.</p>
+      <button class="btn gold magnetic" data-launch>Open the studio <span class="a">→</span></button>
+      <div class="tags"><span class="tag"><b>OGraf</b> + Lottie export</span><span class="tag"><b>Alpha</b> / transparent</span><span class="tag"><b>1080p</b> · 4K</span><span class="tag"><b>Studio:</b> live timeline sync</span></div>
+    </div></div>
   </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <span>◆ Kinetic Typography Studio — free &amp; open.</span>
-    <span>Built for DaVinci Resolve 21 · OGraf</span>
-  </div>
-</footer>
+<footer><div class="wrap"><span>◆ Kinetic Typography Studio — free &amp; open.</span><span>Built for DaVinci Resolve 21 · OGraf</span></div></footer>
 
-<!-- libraries (enhancement only; site works without them) -->
+<div class="wipe" id="wipe"></div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <div class="apphead">
+    <span class="brand"><span class="k">◆</span> Studio</span>
+    <span class="appsteps" id="appsteps">
+      <span class="s" data-step="input">1 · Input</span><span class="s" data-step="gallery">2 · Looks</span><span class="s" data-step="refine">3 · Refine</span><span class="s" data-step="export">4 · Export</span>
+    </span>
+    <span class="sp"></span>
+    <button class="btn ghost magnetic" style="padding:9px 16px" data-close>✕ Close</button>
+  </div>
+  <div class="appbody"><div class="inner">
+
+    <div class="ascreen" id="a-input">
+      <div class="ihero">
+        <div class="eyebrow" style="margin-bottom:14px">Kinetic Typography Studio</div>
+        <h1>Type one line.<br>Get a wall of <em>animated looks.</em></h1>
+        <p>Drop in a lyric, hook, or quote — pick your favorite style — send it to your edit.</p>
+        <div class="inputwrap"><input id="lineInput" type="text" value="We could be heroes" placeholder="Enter your lyric…"><button class="btn gold magnetic" onclick="generate()">Generate ✨</button></div>
+        <div class="opts">
+          <div class="opt">Duration<div class="chips" data-group><span class="chip">2s</span><span class="chip on">3s</span><span class="chip">5s</span></div></div>
+          <div class="opt">Format<div class="chips" data-group><span class="chip on">16:9</span><span class="chip">9:16</span><span class="chip">1:1</span></div></div>
+          <div class="opt">Vibe<select><option>Auto</option><option>Energetic</option><option>Dreamy</option><option>Aggressive</option><option>Elegant</option></select></div>
+        </div>
+        <p class="muted" style="font-size:13px">Works with any DaVinci Resolve — free or Studio. 100% free.</p>
+      </div>
+    </div>
+
+    <div class="ascreen" id="a-gallery">
+      <div class="galbar">
+        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('input')">← Edit line</button>
+        <div class="ln">Looks for “<b id="galLine">We could be heroes</b>”</div>
+        <span class="sp" style="flex:1"></span>
+        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="generate()">↻ Regenerate</button>
+      </div>
+      <div class="grid" id="appGrid"></div>
+    </div>
+
+    <div class="ascreen" id="a-refine">
+      <div class="galbar">
+        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('gallery')">← Back to looks</button>
+        <div class="ln">Refining <b id="refName">Neon</b></div><span class="sp" style="flex:1"></span>
+        <button class="btn gold magnetic" style="padding:10px 18px" onclick="appShow('export')">Export →</button>
+      </div>
+      <div class="refine">
+        <div class="preview"><div class="stage" id="refStage"></div>
+          <div class="scrub"><button class="btn ghost" style="padding:7px 12px" onclick="replay()">▷</button><input type="range" min="0" max="100" value="40"><span class="muted" style="font-size:12px">0:01 / 0:03</span></div>
+        </div>
+        <div class="panel">
+          <h3>Style knobs</h3>
+          <div class="field"><label>Speed</label><input type="range" min="0" max="100" value="55" oninput="setSpeed(this.value)"></div>
+          <div class="field"><label>Intensity</label><input type="range" min="0" max="100" value="70"></div>
+          <div class="field"><label>Color</label><div class="swatches" id="swatches">
+            <span class="sw on" style="background:#D4A574" data-c="#D4A574"></span><span class="sw" style="background:#ff5fae" data-c="#ff5fae"></span><span class="sw" style="background:#6ad0ff" data-c="#6ad0ff"></span><span class="sw" style="background:#7cffa0" data-c="#7cffa0"></span><span class="sw" style="background:#caa8ff" data-c="#caa8ff"></span></div></div>
+          <div class="field"><label>Font</label><div class="seg"><span class="chip on">Display</span><span class="chip">Sans</span><span class="chip">Mono</span><span class="chip">Serif</span></div></div>
+          <div class="field"><label>In / Out</label><div class="seg"><span class="chip on">Rise</span><span class="chip">Pop</span><span class="chip">Wipe</span><span class="chip">Fade</span></div></div>
+          <div class="prow"><button class="btn ghost magnetic" style="flex:1;justify-content:center" onclick="surprise()">🎲 Surprise</button><button class="btn ghost" style="flex:1;justify-content:center">⧉ Duplicate</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ascreen" id="a-export">
+      <div class="galbar"><button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('refine')">← Back</button><div class="ln">Export</div></div>
+      <div class="export">
+        <div class="preview" style="min-height:280px"><div class="stage" id="exStage"></div></div>
+        <div class="panel">
+          <h3>Export options</h3>
+          <div class="exrow"><span>Format</span><select><option>OGraf package (.ograf.zip)</option><option>ProRes 4444 (alpha)</option><option>PNG sequence (alpha)</option><option>WebM (alpha)</option></select></div>
+          <div class="exrow"><span>Resolution</span><select><option>1080p</option><option>4K</option><option>720p</option></select></div>
+          <div class="exrow"><span>Frame rate</span><select><option>30</option><option>24</option><option>25</option><option>60</option></select></div>
+          <div class="exrow"><span>Duration</span><span class="muted">3.0 s</span></div>
+          <div class="exrow"><span>Transparent (alpha)</span><span class="pill2">ON</span></div>
+          <button class="btn gold magnetic" style="width:100%;justify-content:center;margin-top:16px">⬇ Download</button>
+          <button class="btn ghost" style="width:100%;justify-content:center;margin-top:10px" disabled>⚡ Send to Resolve · Studio</button>
+          <p class="note">Free: download &amp; drag into the Resolve Media Pool. Studio (later): one‑click live placement on the timeline.</p>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
 <script src="https://unpkg.com/lenis@1.3/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
 <script>
-const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const LINE = 'We could be heroes';
-const LOOKS = [['neon','Neon'],['chrome','Chrome'],['glitch','Glitch'],['particles','Particles'],
-  ['brutalist','Brutalist'],['type','Typewriter'],['retro','Retro'],['pop','Bold Pop'],['grad','Gradient']];
+const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let LINE='We could be heroes', currentLook='neon';
+const LOOKS=[['neon','Neon'],['chrome','Chrome'],['glitch','Glitch'],['particles','Particles'],['brutalist','Brutalist'],['type','Typewriter'],['retro','Retro'],['pop','Bold Pop'],['grad','Gradient']];
 
-/* split a string into per-char spans (with scatter offsets for particles) */
-function split(el, text, scatter){
-  el.innerHTML='';
-  [...text].forEach((c,i)=>{
-    const s=document.createElement('span'); s.className='ch'; s.style.setProperty('--i',i);
-    if(scatter){ s.style.setProperty('--dx',(Math.random()*60-30|0)+'px'); s.style.setProperty('--dy',(Math.random()*60-30|0)+'px'); }
-    s.textContent = c===' ' ? ' ' : c; el.appendChild(s);
-  });
-}
-function applyLook(stage, key){
-  stage.className = 'stage ' + (key==='type' ? 'look-type' : 'look-'+key);
-  if(key==='type'){ stage.textContent = LINE; } else { split(stage, LINE, key==='particles'); }
-}
+function split(el,text,scatter){el.innerHTML='';[...text].forEach((c,i)=>{const s=document.createElement('span');s.className='ch';s.style.setProperty('--i',i);if(scatter){s.style.setProperty('--dx',(Math.random()*60-30|0)+'px');s.style.setProperty('--dy',(Math.random()*60-30|0)+'px');}s.textContent=c===' '?' ':c;el.appendChild(s);});}
+function applyLook(el,key,text,base){const t=text||LINE;el.className=(base||'stage')+' '+(key==='type'?'look-type':'look-'+key);if(key==='type'){el.textContent=t;}else{split(el,t,key==='particles');}}
 
-/* hero: cycle through the looks, demoing the product itself */
-(function heroCycle(){
-  const stage=document.getElementById('heroStage'), cap=document.getElementById('capName');
-  let i=0; applyLook(stage,LOOKS[0][0]); cap.textContent=LOOKS[0][1];
-  if(REDUCE) return;
-  setInterval(()=>{
-    stage.style.transition='opacity .35s, filter .35s'; stage.style.opacity='0'; stage.style.filter='blur(6px)';
-    setTimeout(()=>{ i=(i+1)%LOOKS.length; applyLook(stage,LOOKS[i][0]); cap.textContent=LOOKS[i][1];
-      stage.style.opacity='1'; stage.style.filter='none'; },360);
-  },2600);
-})();
+/* hero self-demo cycle */
+(function(){const stage=document.getElementById('heroStage'),cap=document.getElementById('capName');let i=0;applyLook(stage,LOOKS[0][0]);cap.textContent=LOOKS[0][1];if(REDUCE)return;
+  setInterval(()=>{stage.style.transition='opacity .35s,filter .35s';stage.style.opacity='0';stage.style.filter='blur(6px)';
+    setTimeout(()=>{i=(i+1)%LOOKS.length;applyLook(stage,LOOKS[i][0]);cap.textContent=LOOKS[i][1];stage.style.opacity='1';stage.style.filter='none';},360);},2600);})();
 
-/* showcase grid */
-(function grid(){
-  const g=document.getElementById('grid');
-  LOOKS.forEach(([key,name],idx)=>{
-    const card=document.createElement('div'); card.className='card reveal'; card.setAttribute('data-tilt','');
-    card.innerHTML=`<span class="lbl">${name}</span><span class="num">0${idx+1}</span><div class="demo"></div>`;
-    g.appendChild(card);
-    const demo=card.querySelector('.demo');
-    demo.className='demo '+(key==='type'?'look-type':'look-'+key);
-    if(key==='type'){ demo.textContent=LINE; } else { split(demo, LINE, key==='particles'); }
-  });
-})();
+/* showcase grid (wrapped for entrance + tilt without conflict) */
+(function(){const g=document.getElementById('grid');LOOKS.forEach(([key,name],idx)=>{
+  const wrap=document.createElement('div');wrap.className='card-wrap reveal';
+  wrap.innerHTML=`<div class="card" data-tilt><span class="lbl">${name}</span><span class="num">0${idx+1}</span><div class="demo"></div></div>`;
+  g.appendChild(wrap);const demo=wrap.querySelector('.demo');demo.className='demo '+(key==='type'?'look-type':'look-'+key);
+  if(key==='type'){demo.textContent=LINE;}else{split(demo,LINE,key==='particles');}});})();
 
-/* custom cursor */
-(function cursor(){
-  if(matchMedia('(pointer:coarse)').matches) return;
-  const ring=document.querySelector('.cursor'), dot=document.querySelector('.cursor-dot');
-  let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+/* cursor */
+(function(){if(matchMedia('(pointer:coarse)').matches)return;const ring=document.querySelector('.cursor'),dot=document.querySelector('.cursor-dot');let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
   addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
-  (function loop(){ rx+=(mx-rx)*.18; ry+=(my-ry)*.18; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(loop);})();
-  document.querySelectorAll('a,button,.magnetic,.card,[data-tilt]').forEach(el=>{
-    el.addEventListener('mouseenter',()=>ring.classList.add('grow'));
-    el.addEventListener('mouseleave',()=>ring.classList.remove('grow'));
-  });
-})();
+  (function loop(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(loop);})();
+  const hov=()=>ring.classList.add('grow'),out=()=>ring.classList.remove('grow');
+  document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,.card,[data-tilt],input,select,.chip,.sw'))hov();});
+  document.addEventListener('mouseout',e=>{if(e.target.closest('a,button,.card,[data-tilt],input,select,.chip,.sw'))out();});})();
 
-/* magnetic buttons */
-(function magnetic(){
-  if(REDUCE) return;
-  document.querySelectorAll('.magnetic').forEach(el=>{
-    el.addEventListener('mousemove',e=>{ const r=el.getBoundingClientRect();
-      const x=(e.clientX-(r.left+r.width/2))*.3, y=(e.clientY-(r.top+r.height/2))*.4;
-      el.style.transform=`translate(${x}px,${y}px)`; });
-    el.addEventListener('mouseleave',()=>{ el.style.transition='transform .4s cubic-bezier(.2,.7,.2,1)';
-      el.style.transform='translate(0,0)'; setTimeout(()=>el.style.transition='',400); });
-  });
-})();
+/* magnetic (delegated so it covers app buttons too) */
+(function(){if(REDUCE)return;
+  document.addEventListener('mousemove',e=>{const el=e.target.closest('.magnetic');if(!el)return;const r=el.getBoundingClientRect();
+    el.style.transform=`translate(${(e.clientX-(r.left+r.width/2))*.3}px,${(e.clientY-(r.top+r.height/2))*.4}px)`;});
+  document.addEventListener('mouseout',e=>{const el=e.target.closest('.magnetic');if(!el)return;el.style.transition='transform .4s var(--e)';el.style.transform='';setTimeout(()=>el.style.transition='',400);});})();
 
-/* tilt */
-if(window.VanillaTilt && !REDUCE){
-  VanillaTilt.init(document.querySelectorAll('[data-tilt]'),{max:6,speed:500,glare:true,'max-glare':.12,scale:1.01});
-}
+if(window.VanillaTilt&&!REDUCE)VanillaTilt.init(document.querySelectorAll('[data-tilt]'),{max:7,speed:500,glare:true,'max-glare':.12,scale:1.01});
 
-/* smooth scroll + scroll-driven motion (GSAP) */
-(function motion(){
-  const hasGSAP = !!window.gsap;
-  if(hasGSAP) gsap.registerPlugin(window.ScrollTrigger);
-
-  if(window.Lenis && !REDUCE){
-    document.documentElement.classList.add('has-smooth');
-    const lenis=new Lenis({lerp:.1,smoothWheel:true});
-    if(hasGSAP){ lenis.on('scroll',ScrollTrigger.update); gsap.ticker.add(t=>lenis.raf(t*1000)); gsap.ticker.lagSmoothing(0); }
-    else { (function raf(t){lenis.raf(t);requestAnimationFrame(raf);})(); }
-  }
-  if(!hasGSAP || REDUCE) return; // content already visible; just no choreography
-
-  // word-masked headline reveals
-  document.querySelectorAll('.reveal-words').forEach(h=>{
-    const html=h.innerHTML; h.innerHTML='';
-    html.split(/(<br\s*\/?>(?=))/i).forEach(seg=>{
-      if(/^<br/i.test(seg)){ h.appendChild(document.createElement('br')); return; }
-      seg.replace(/<span class="accent">(.*?)<\/span>|([^<]+)/g,(m,acc,plain)=>{
-        const words=(acc||plain||'').split(' ').filter(Boolean);
-        words.forEach(w=>{
-          const mask=document.createElement('span'); mask.style.cssText='display:inline-block;overflow:hidden;vertical-align:top';
-          const inner=document.createElement('span'); inner.style.display='inline-block';
-          inner.textContent=w+' '; if(acc) inner.classList.add('accent');
-          mask.appendChild(inner); h.appendChild(mask); h._words=h._words||[]; h._words.push(inner);
-        }); return m;
-      });
-    });
-    gsap.set(h._words,{yPercent:110});
-    gsap.to(h._words,{yPercent:0,duration:1,ease:'power4.out',stagger:.06,
-      scrollTrigger:{trigger:h,start:'top 88%'}});
-  });
-
-  // generic reveals (opacity-only -> safe alongside tilt transforms)
-  gsap.set('.reveal',{opacity:0});
-  ScrollTrigger.batch('.reveal',{start:'top 92%',onEnter:b=>gsap.to(b,{opacity:1,duration:.9,ease:'power2.out',stagger:.08})});
-
+/* smooth scroll + scroll-driven motion (MORE) */
+let lenis=null;
+(function(){const hasG=!!window.gsap;if(hasG)gsap.registerPlugin(window.ScrollTrigger);
+  if(window.Lenis&&!REDUCE){lenis=new Lenis({lerp:.1,smoothWheel:true});
+    if(hasG){lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0);}else{(function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();}}
+  if(!hasG||REDUCE)return;
+  // progress bar
+  gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:document.body,start:'top top',end:'bottom bottom',scrub:.3}});
+  // masked headline word reveals
+  document.querySelectorAll('.reveal-words').forEach(h=>{const original=h.innerHTML;try{h.innerHTML='';h._w=[];
+    original.split(/(<br\s*\/?>)/i).forEach(seg=>{if(/^<br/i.test(seg)){h.appendChild(document.createElement('br'));return;}
+      seg.replace(/<span class="accent">(.*?)<\/span>|([^<]+)/g,(m,acc,plain)=>{(acc||plain||'').split(' ').filter(Boolean).forEach(w=>{const mk=document.createElement('span');mk.style.cssText='display:inline-block;overflow:hidden;vertical-align:top';const inr=document.createElement('span');inr.style.display='inline-block';inr.textContent=w+' ';if(acc)inr.classList.add('accent');mk.appendChild(inr);h.appendChild(mk);h._w.push(inr);});return m;});});
+    if(!h._w.length){h.innerHTML=original;return;}gsap.set(h._w,{yPercent:115});gsap.to(h._w,{yPercent:0,duration:1,ease:'power4.out',stagger:.05,scrollTrigger:{trigger:h,start:'top 90%'}});}catch(e){h.innerHTML=original;}});
+  // generic opacity reveals
+  gsap.set('.reveal',{opacity:0});ScrollTrigger.batch('.reveal',{start:'top 92%',onEnter:b=>gsap.to(b,{opacity:1,duration:.9,ease:'power2.out',stagger:.08})});
+  // card entrance (wrapper -> no tilt conflict): rise + slight rotate
+  gsap.set('.card-wrap',{opacity:0,y:60,rotateZ:2});
+  ScrollTrigger.batch('.card-wrap',{start:'top 90%',onEnter:b=>gsap.to(b,{opacity:1,y:0,rotateZ:0,duration:1,ease:'power3.out',stagger:.09})});
   // parallax layers
-  document.querySelectorAll('[data-parallax]').forEach(el=>{
-    gsap.to(el,{yPercent:-(el.dataset.speed||20),ease:'none',
-      scrollTrigger:{trigger:el,start:'top bottom',end:'bottom top',scrub:1}});
-  });
-
-  // marquee subtle speed-from-scroll could be added; kept CSS for resilience
+  document.querySelectorAll('[data-parallax]').forEach(el=>gsap.to(el,{yPercent:-(el.dataset.speed||20),ease:'none',scrollTrigger:{trigger:el,start:'top bottom',end:'bottom top',scrub:1}}));
+  // hero card: parallax + scale on scroll
+  gsap.to('#heroCard',{yPercent:14,scale:.94,ease:'none',scrollTrigger:{trigger:'#heroCard',start:'top 70%',end:'bottom top',scrub:1}});
+  // marquee skew reacting to scroll velocity (skews inner, not the CSS-animated track)
+  const mqi=document.querySelector('.mq-inner');
+  if(mqi)ScrollTrigger.create({onUpdate:self=>{const v=Math.max(-14,Math.min(14,self.getVelocity()/-260));gsap.to(mqi,{skewX:v,duration:.4,overwrite:true,onComplete:()=>gsap.to(mqi,{skewX:0,duration:.5})});}});
 })();
+
+/* ===================== APP logic ===================== */
+const app=document.getElementById('app'),wipe=document.getElementById('wipe');
+function openApp(){
+  const reveal=()=>{app.classList.add('on');buildAppGrid();appShow('input');if(lenis)lenis.stop();document.body.style.overflow='hidden';};
+  if(window.gsap&&!REDUCE){const tl=gsap.timeline();tl.set(wipe,{transformOrigin:'50% 100%'}).to(wipe,{scaleY:1,duration:.45,ease:'power3.inOut'}).add(reveal).to(wipe,{scaleY:0,transformOrigin:'50% 0%',duration:.5,ease:'power3.inOut'},'+=.05');}
+  else{reveal();}
+}
+function closeApp(){app.classList.remove('on');if(lenis)lenis.start();document.body.style.overflow='';}
+document.querySelectorAll('[data-launch]').forEach(b=>b.addEventListener('click',openApp));
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeApp));
+addEventListener('keydown',e=>{if(e.key==='Escape'&&app.classList.contains('on'))closeApp();});
+
+function appShow(step){['input','gallery','refine','export'].forEach(s=>{document.getElementById('a-'+s).classList.toggle('on',s===step);document.querySelector(`.appsteps .s[data-step="${s}"]`)?.classList.toggle('active',s===step);});
+  document.querySelector('.appbody').scrollTop=0;
+  if(step==='export'){const ex=document.getElementById('exStage');applyLook(ex,currentLook,LINE);}}
+function buildAppGrid(){const g=document.getElementById('appGrid');if(g.dataset.built&&g.dataset.line===LINE)return;g.dataset.built='1';g.dataset.line=LINE;g.innerHTML='';
+  LOOKS.forEach(([key,name],idx)=>{const wrap=document.createElement('div');wrap.className='card-wrap';
+    wrap.innerHTML=`<div class="card" data-tilt><span class="lbl">${name}</span><span class="num">0${idx+1}</span><div class="demo"></div><button class="btn gold magnetic" style="position:absolute;bottom:10px;left:12px;padding:7px 12px;font-size:12px" onclick="openRefine('${key}','${name}')">Edit →</button></div>`;
+    g.appendChild(wrap);applyLook(wrap.querySelector('.demo'),key,LINE,'demo');});
+  if(window.VanillaTilt&&!REDUCE)VanillaTilt.init(g.querySelectorAll('[data-tilt]'),{max:7,speed:500,glare:true,'max-glare':.12});}
+function generate(){LINE=(document.getElementById('lineInput').value||'Your lyric here').trim();document.getElementById('galLine').textContent=LINE;document.getElementById('appGrid').dataset.line='';buildAppGrid();appShow('gallery');}
+function openRefine(key,name){currentLook=key;document.getElementById('refName').textContent=name;applyLook(document.getElementById('refStage'),key,LINE);appShow('refine');}
+function replay(){openRefine(currentLook,document.getElementById('refName').textContent);}
+function setSpeed(v){const s=document.getElementById('refStage'),d=(6-(v/100)*4)+'s';s.style.animationDuration=d;s.querySelectorAll('.ch').forEach(c=>c.style.animationDuration=d);}
+function surprise(){const r=LOOKS[Math.floor(Math.random()*LOOKS.length)];openRefine(r[0],r[1]);}
+document.addEventListener('click',e=>{const sw=e.target.closest('#swatches .sw');if(sw){document.querySelectorAll('#swatches .sw').forEach(x=>x.classList.remove('on'));sw.classList.add('on');const rs=document.getElementById('refStage');if(rs)rs.style.setProperty('--gold',sw.dataset.c);}
+  const c=e.target.closest('.chips .chip,.seg .chip');if(c){const grp=c.parentElement;grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');}});
+if(location.hash==='#app')openApp();
 </script>
 </body>
 </html>

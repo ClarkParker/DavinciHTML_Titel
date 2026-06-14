@@ -11,11 +11,11 @@ A web tool (English UI) that turns **one song lyric line** into **multiple anima
 
 - **[`docs/03-concept.md`](docs/03-concept.md)** — **Concept v0.1**: the product vision, target user, the
   Hybrid generate‑then‑refine flow, screen map, preset system, and v1 scope. *(Phase 1 — start here.)*
-- **[`docs/04-ui.md`](docs/04-ui.md)** — **UI**: the design direction and prototypes. Open
-  **[`prototype/index.html`](prototype/index.html)** for the premium animated landing page (warm‑espresso +
-  champagne‑gold, Clash Display + Satoshi, Lenis/GSAP parallax, the hero demos itself), and
-  **[`prototype/app.html`](prototype/app.html)** for the app wireflow (Input → Gallery → Refine → Export).
-  *(Phase 2.)*
+- **[`docs/04-ui.md`](docs/04-ui.md)** — **UI**: the design direction and prototype. Open
+  **[`prototype/index.html`](prototype/index.html)** in any browser — a single self‑contained file with the
+  premium animated landing page (warm‑espresso + champagne‑gold, Clash Display + Satoshi, Lenis/GSAP
+  parallax, the hero demos itself) **and** the app flow (Input → Gallery → Refine → Export); "Launch app"
+  opens the tool in‑page. *(Phase 2.)*
 - **[`docs/01-research-feature-and-tooling.md`](docs/01-research-feature-and-tooling.md)** —
   Research Dossier #1: the feature catalog (must‑have vs. nice‑to‑have for animating text) and the
   landscape of adaptable open‑source projects, with a recommended stack and a PoC milestone.
