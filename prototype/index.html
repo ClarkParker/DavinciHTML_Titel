@@ -3,470 +3,353 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Kinetic Typography Studio — Turn a lyric into a moving masterpiece</title>
-<meta name="description" content="One line of lyrics. Infinite animated looks. Type your line, pick a style, drop it straight into DaVinci Resolve. Free for everyone." />
+<title>Kinetic Typography Studio</title>
+<meta name="description" content="One line of lyrics. Infinite animated looks. A generative kinetic-typography studio for DaVinci Resolve. Free for everyone." />
 <link rel="preconnect" href="https://api.fontshare.com" />
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500,400&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
 <style>
 /* =====================================================================
-   KINETIC TYPOGRAPHY STUDIO — single-file premium prototype (Phase 2 UI)
-   Landing + App in one file. Warm espresso + champagne-gold.
-   Clash Display + Satoshi. Lenis + GSAP motion. App works without JS libs.
+   KINETIC TYPOGRAPHY STUDIO — single file. Slim landing + the TOOL workspace.
+   Focus: the tool's UI/UX (generative variant matrix). Premium dark system.
    ===================================================================== */
 :root{
-  --bg:#0E0D0B; --bg2:#13110E; --surface:#16140F; --elevated:#1C1917;
-  --line:rgba(235,218,176,.12); --hair:rgba(255,255,255,.07);
-  --txt:#F4EFE6; --muted:#A29A8E; --faint:#6E665C;
-  --gold:#D4A574; --gold2:#EBDAB0; --champ:#E3CBA0;
-  --disp:'Clash Display',Georgia,serif;
-  --sans:'Satoshi',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --maxw:1180px; --e:cubic-bezier(.2,.7,.2,1);
+  --bg:#0E0D0B;--bg2:#13110E;--surface:#16140F;--elevated:#1C1917;--panel:#141210;
+  --line:rgba(235,218,176,.12);--hair:rgba(255,255,255,.07);
+  --txt:#F4EFE6;--muted:#A29A8E;--faint:#6E665C;
+  --gold:#D4A574;--gold2:#EBDAB0;
+  --disp:'Clash Display',Georgia,serif;--sans:'Satoshi',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --maxw:1180px;--e:cubic-bezier(.2,.7,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:17px;line-height:1.6;
-  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font-family:var(--sans)}
 ::selection{background:var(--gold);color:#0E0D0B}
 
 /* atmosphere */
-.bgwrap{position:fixed;inset:0;z-index:-2;overflow:hidden;background:
-  radial-gradient(1100px 700px at 78% -8%, #1a140d 0%, transparent 60%),
-  radial-gradient(900px 600px at -8% 108%, #14120e 0%, transparent 55%), var(--bg)}
-.orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.5;will-change:transform}
-.orb.a{width:580px;height:580px;left:-120px;top:-140px;background:radial-gradient(circle,#c79a5e88,transparent 70%);animation:drift1 24s ease-in-out infinite}
-.orb.b{width:500px;height:500px;right:-100px;top:28%;background:radial-gradient(circle,#9a7b4e66,transparent 70%);animation:drift2 30s ease-in-out infinite}
-.orb.c{width:440px;height:440px;left:28%;bottom:-160px;background:radial-gradient(circle,#e3cba055,transparent 70%);animation:drift1 36s ease-in-out infinite reverse}
-@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(70px,46px)}}
-@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-56px,34px)}}
-.grain{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.045;mix-blend-mode:overlay;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-/* cursor */
+.bgwrap{position:fixed;inset:0;z-index:-2;overflow:hidden;background:radial-gradient(1100px 700px at 78% -8%,#1a140d 0%,transparent 60%),radial-gradient(900px 600px at -8% 108%,#14120e 0%,transparent 55%),var(--bg)}
+.orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.45;will-change:transform}
+.orb.a{width:560px;height:560px;left:-120px;top:-140px;background:radial-gradient(circle,#c79a5e88,transparent 70%);animation:drift1 26s ease-in-out infinite}
+.orb.b{width:480px;height:480px;right:-100px;top:30%;background:radial-gradient(circle,#9a7b4e66,transparent 70%);animation:drift2 32s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,30px)}}
+.grain{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.04;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .cursor,.cursor-dot{position:fixed;top:0;left:0;z-index:10000;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference}
-.cursor{width:34px;height:34px;border:1px solid rgba(244,239,230,.6);transition:width .25s,height .25s,background .25s}
+.cursor{width:32px;height:32px;border:1px solid rgba(244,239,230,.6);transition:width .25s,height .25s,background .25s}
 .cursor-dot{width:5px;height:5px;background:var(--gold2)}
-.cursor.grow{width:66px;height:66px;background:rgba(244,239,230,.08);border-color:transparent}
+.cursor.grow{width:60px;height:60px;background:rgba(244,239,230,.08);border-color:transparent}
 @media (pointer:coarse){.cursor,.cursor-dot{display:none}}
 
-/* scroll progress */
-.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;
-  background:linear-gradient(90deg,var(--gold),var(--gold2));z-index:101}
+/* buttons */
+.btn{position:relative;display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:14px;padding:11px 18px;border-radius:11px;will-change:transform}
+.btn.gold{background:var(--gold);color:#0E0D0B}.btn.gold:hover{background:var(--gold2)}
+.btn.ghost{border:1px solid var(--line);color:var(--txt)}.btn.ghost:hover{border-color:var(--gold)}
+.btn.sm{padding:8px 13px;font-size:13px;border-radius:9px}
 
-/* nav */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:14px;padding:18px 28px;
-  backdrop-filter:blur(14px) saturate(160%);background:linear-gradient(180deg,rgba(14,13,11,.7),rgba(14,13,11,.12));border-bottom:1px solid var(--hair)}
-nav .brand{font-family:var(--disp);font-weight:600;letter-spacing:-.01em;font-size:18px}
-nav .brand .k{color:var(--gold)}
+/* ---------------- slim landing ---------------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:14px;padding:16px 28px;backdrop-filter:blur(14px) saturate(160%);background:linear-gradient(180deg,rgba(14,13,11,.72),rgba(14,13,11,.12));border-bottom:1px solid var(--hair)}
+nav .brand{font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:-.01em}.brand .k{color:var(--gold)}
 nav .pill{font-size:11px;font-weight:700;letter-spacing:.1em;color:#0E0D0B;background:var(--gold);padding:3px 9px;border-radius:999px}
 nav .sp{flex:1}
-nav .navlink{font-size:14px;color:var(--muted);padding:8px 12px}
-nav .navlink:hover{color:var(--txt)}
+.land{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 70px;position:relative}
+.land .eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.land h1{font-family:var(--disp);font-weight:600;letter-spacing:-.035em;line-height:.98;font-size:clamp(40px,8vw,96px);margin:18px 0 0;max-width:13ch}
+.land h1 .accent{color:var(--gold)}
+.land p{max-width:560px;color:var(--muted);font-size:clamp(15px,2vw,19px);margin:24px 0 0}
+.land .cta{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap;justify-content:center}
+.landstage{margin-top:54px;max-width:820px;width:100%;aspect-ratio:16/6.5;border:1px solid var(--line);border-radius:20px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/26px 26px;box-shadow:0 50px 120px -55px #000}
+.landstage .cap{position:absolute;top:13px;left:16px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.landstage .cap b{color:var(--gold)}
 
-/* buttons */
-.btn{position:relative;display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;padding:15px 26px;border-radius:999px;will-change:transform}
-.btn.gold{background:var(--gold);color:#0E0D0B}
-.btn.gold:hover{background:var(--gold2)}
-.btn.ghost{border:1px solid var(--line);color:var(--txt)}
-.btn.ghost:hover{border-color:var(--gold)}
-.btn .a{transition:transform .3s var(--e)}
-.btn:hover .a{transform:translateX(4px)}
-
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
-.eyebrow{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
-.muted{color:var(--muted)}
-section{position:relative;padding:130px 0}
-h2.h{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5vw,60px);line-height:1.02;letter-spacing:-.025em}
-
-/* hero */
-.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 0 70px;text-align:center;position:relative}
-.hero .ghostwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:-1;pointer-events:none;overflow:hidden}
-.hero .ghostword{font-family:var(--disp);font-weight:700;font-size:34vw;color:#fff;opacity:.018;white-space:nowrap;letter-spacing:-.04em;will-change:transform}
-.hero h1{font-family:var(--disp);font-weight:600;letter-spacing:-.035em;line-height:.98;font-size:clamp(44px,9vw,116px);margin:22px auto 0;max-width:14ch}
-.hero h1 .accent{color:var(--gold)}
-.hero p.sub{max-width:600px;margin:30px auto 0;font-size:clamp(16px,2vw,20px);color:var(--muted)}
-.hero .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:42px}
-.hero .scrollcue{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
-.hero .scrollcue::after{content:"";display:block;width:1px;height:34px;margin:10px auto 0;background:linear-gradient(var(--gold),transparent);animation:cue 1.8s ease-in-out infinite}
-@keyframes cue{0%,100%{opacity:.2;transform:scaleY(.5)}50%{opacity:1;transform:scaleY(1)}}
-
-.stagecard{max-width:880px;margin:60px auto 0;border:1px solid var(--line);border-radius:22px;
-  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/26px 26px;
-  box-shadow:0 50px 120px -50px #000,inset 0 1px 0 rgba(255,255,255,.04);aspect-ratio:16/7;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;will-change:transform}
-.stagecard .cap{position:absolute;top:14px;left:18px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);z-index:3}
-.stagecard .cap b{color:var(--gold)}
-.stage{font-family:var(--disp);font-weight:700;font-size:clamp(26px,6vw,64px);text-align:center;line-height:1.04;letter-spacing:-.01em;padding:0 18px}
-.stage .ch,.demo .ch{display:inline-block;white-space:pre}
-
-/* marquee */
-.marquee{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:26px 0;overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-.marquee .mq-inner{will-change:transform}
-.marquee .track{display:flex;gap:46px;width:max-content;animation:marq 28s linear infinite}
-.marquee:hover .track{animation-play-state:paused}
-.marquee .item{font-family:var(--disp);font-weight:500;font-size:30px;color:var(--muted);display:flex;align-items:center;gap:46px;letter-spacing:-.01em}
-.marquee .item::after{content:"✦";color:var(--gold);font-size:16px}
-@keyframes marq{to{transform:translateX(-50%)}}
-
-/* showcase */
-.showhead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:46px;flex-wrap:wrap}
-.showhead p{max-width:420px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:540px){.grid{grid-template-columns:1fr}}
-.card-wrap{will-change:transform,opacity}
-.card{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
-  background:repeating-conic-gradient(#181610 0% 25%,#141209 0% 50%) 0 0/22px 22px;transform-style:preserve-3d;transition:border-color .2s}
-.card:hover{border-color:var(--gold)}
-.card .lbl{position:absolute;top:12px;left:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;z-index:2}
-.card .num{position:absolute;bottom:10px;right:14px;font-family:var(--disp);color:var(--faint);font-size:13px}
-.card .demo{font-family:var(--disp);font-weight:700;font-size:clamp(16px,2.5vw,28px);text-align:center;padding:0 14px}
-
-/* looks */
-.look-neon{color:#fff;text-shadow:0 0 7px var(--gold),0 0 18px #ff5fae,0 0 36px #ff5fae}
+/* ---------------- looks (shared) ---------------- */
+.stage,.vstage{font-family:var(--disp);font-weight:700}
+.stage{font-size:clamp(26px,6vw,60px);text-align:center;line-height:1.05;letter-spacing:-.01em;padding:0 16px}
+.vstage{font-size:15px;text-align:center;line-height:1.05}
+.stage .ch,.vstage .ch{display:inline-block;white-space:pre}
+.look-neon{color:#fff;text-shadow:0 0 7px var(--gold),0 0 18px var(--gold),0 0 34px var(--gold)}
 .look-chrome{background:linear-gradient(180deg,#fff,#cdb691 42%,#8a7a5f 56%,#f1e6cf);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
 .look-glitch .ch{animation:glitch 2.4s steps(9) infinite;animation-delay:calc(var(--i)*.03s);color:#fff}
 .look-particles .ch{animation:scatter 4s var(--e) infinite;animation-delay:calc(var(--i)*.03s);color:#fff}
 .look-brutalist{color:#fff;font-weight:700;text-shadow:4px 4px 0 var(--gold)}
-.look-type{color:var(--gold2);font-family:ui-monospace,Menlo,monospace;font-size:clamp(15px,2.2vw,24px);border-right:2px solid var(--gold2);white-space:nowrap;overflow:hidden;width:max-content;animation:type 4.5s steps(20) infinite,caret .7s step-end infinite}
+.look-type{color:var(--gold2);font-family:ui-monospace,Menlo,monospace;border-right:2px solid var(--gold2);white-space:nowrap;overflow:hidden;width:max-content;margin:0 auto;animation:type 4.5s steps(20) infinite,caret .7s step-end infinite}
 .look-retro{background:linear-gradient(180deg,#ffd27a,#e08bb0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .look-pop .ch{animation:pop 3s var(--e) infinite;animation-delay:calc(var(--i)*.05s);color:#fff}
 .look-grad{background:linear-gradient(90deg,var(--gold),#ff9ec4,var(--gold2),var(--gold));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:slide 4s linear infinite}
 .look-neon .ch,.look-chrome .ch,.look-brutalist .ch,.look-retro .ch,.look-grad .ch{animation:rise 3.6s var(--e) infinite;animation-delay:calc(var(--i)*.045s)}
-@keyframes rise{0%{opacity:0;transform:translateY(16px)}18%,82%{opacity:1;transform:none}100%{opacity:1}}
+@keyframes rise{0%{opacity:0;transform:translateY(15px)}18%,82%{opacity:1;transform:none}100%{opacity:1}}
 @keyframes pop{0%{opacity:0;transform:scale(.3)}15%{opacity:1;transform:scale(1.16)}26%,82%{transform:scale(1)}100%{transform:scale(1)}}
 @keyframes scatter{0%{opacity:0;transform:translate(var(--dx,18px),var(--dy,-18px)) rotate(16deg)}24%,82%{opacity:1;transform:none}100%{opacity:1}}
 @keyframes glitch{0%,100%{text-shadow:none;transform:none}20%{text-shadow:-2px 0 var(--gold),2px 0 #6ad0ff;transform:translateX(1px)}40%{text-shadow:2px 0 #ff5fae,-2px 0 #6ad0ff;transform:translateX(-1px)}60%{text-shadow:-1px 0 #fff}}
-@keyframes type{0%{width:0}55%,100%{width:100%}}
-@keyframes caret{50%{border-color:transparent}}
+@keyframes type{0%{width:0}55%,100%{width:100%}}@keyframes caret{50%{border-color:transparent}}
 @keyframes slide{to{background-position:200% 0}}
 
-/* steps / band / footer */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--hair)}
-@media(max-width:760px){.steps{grid-template-columns:1fr}}
-.step{padding:38px 30px;border-right:1px solid var(--hair)}
-.step:last-child{border-right:none}
-.step .n{font-family:var(--disp);font-size:54px;font-weight:600;color:var(--gold);line-height:1;letter-spacing:-.03em}
-.step h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:18px 0 8px}
-.step p{color:var(--muted);font-size:15px}
-.band{border:1px solid var(--line);border-radius:24px;padding:56px;text-align:center;background:linear-gradient(180deg,rgba(212,165,116,.06),rgba(255,255,255,0));overflow:hidden}
-.band h2{font-family:var(--disp);font-weight:600;font-size:clamp(28px,5vw,52px);letter-spacing:-.025em;line-height:1.02}
-.band p{max-width:520px;margin:18px auto 30px;color:var(--muted)}
-.tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
-.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 14px}
-.tag b{color:var(--gold)}
-footer{border-top:1px solid var(--hair);padding:40px 0;color:var(--faint);font-size:13px}
-footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.reveal{will-change:opacity}
-
-/* ===================== APP overlay ===================== */
+/* ===================== THE TOOL (workspace) ===================== */
 .wipe{position:fixed;inset:0;z-index:600;background:var(--gold);transform:scaleY(0);transform-origin:50% 100%;pointer-events:none}
-#app{position:fixed;inset:0;z-index:550;background:
-  radial-gradient(1000px 600px at 80% -10%,#1a140d,transparent 60%),var(--bg);
-  display:none;flex-direction:column;overflow:hidden}
-#app.on{display:flex}
-.apphead{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--hair);backdrop-filter:blur(8px)}
-.apphead .brand{font-family:var(--disp);font-weight:600;font-size:16px}.apphead .brand .k{color:var(--gold)}
-.apphead .sp{flex:1}
-.appsteps{display:flex;gap:6px;font-size:12px;color:var(--muted)}
-.appsteps .s{padding:6px 11px;border-radius:999px;border:1px solid var(--hair)}
-.appsteps .s.active{color:var(--txt);border-color:var(--gold);background:rgba(212,165,116,.1)}
-.appbody{flex:1;overflow:auto;padding:34px 26px 60px}
-.appbody .inner{max-width:1100px;margin:0 auto}
-.ascreen{display:none;animation:fadein .5s var(--e)}
-.ascreen.on{display:block}
-@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#app{position:fixed;inset:0;z-index:550;background:radial-gradient(1000px 600px at 80% -10%,#1a140d,transparent 60%),var(--bg);display:none}
+#app.on{display:block}
+.ws{display:grid;grid-template-rows:auto 1fr;height:100%}
+.wstop{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--hair);background:rgba(20,18,14,.65);backdrop-filter:blur(10px);flex-wrap:wrap}
+.wstop .brand{font-family:var(--disp);font-weight:600;font-size:16px}
+.linefield{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.linefield span{color:var(--faint);font-size:13px}
+.linefield input{flex:1;background:none;border:none;outline:none;color:var(--txt);font-size:16px}
+.miniseg{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:3px}
+.miniseg button{padding:5px 9px;border-radius:6px;font-size:12px;color:var(--muted)}
+.miniseg button.on{background:var(--elevated);color:var(--txt)}
+.wsbody{display:grid;grid-template-columns:268px 1fr 296px;min-height:0}
+.wsleft{border-right:1px solid var(--hair)}.wsright{border-left:1px solid var(--hair)}
+.wsleft,.wsright{overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.015),transparent)}
+.panelhead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:rgba(16,13,11,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--hair)}
+.varlist{padding:12px;display:grid;gap:10px}
+.var{border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;background:repeating-conic-gradient(#181610 0% 25%,#141209 0% 50%) 0 0/18px 18px;transition:border-color .18s,transform .18s}
+.var:hover{transform:translateY(-2px)}
+.var.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.var-stage{height:74px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 8px}
+.var-meta{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-top:1px solid var(--hair);font-size:11px;color:var(--faint)}
+.var-meta .s{font-family:ui-monospace,monospace;letter-spacing:.04em}
+.var-fav{font-size:13px;opacity:.5}.var-fav.on,.var-fav:hover{opacity:1;color:var(--gold)}
 
-.ihero{max-width:760px;margin:5vh auto 0;text-align:center}
-.ihero h1{font-family:var(--disp);font-weight:600;font-size:clamp(30px,5.5vw,60px);letter-spacing:-.03em;line-height:1.02}
-.ihero h1 em{font-style:normal;color:var(--gold)}
-.ihero p{color:var(--muted);margin:16px auto 28px;max-width:480px}
-.inputwrap{display:flex;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 30px 80px -40px #000}
-.inputwrap input{flex:1;background:transparent;border:none;outline:none;color:var(--txt);font-size:19px;padding:12px 14px;font-family:var(--sans)}
-.inputwrap input::placeholder{color:var(--faint)}
-.opts{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:22px 0}
-.opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.chips{display:flex;gap:6px}
-.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--muted);cursor:pointer}
-.chip.on{color:#0E0D0B;border-color:var(--gold);background:var(--gold)}
-select{background:var(--elevated);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 10px;font-family:var(--sans)}
+.wsstage{display:flex;flex-direction:column;min-width:0}
+.stagewrap{flex:1;margin:18px;border:1px solid var(--line);border-radius:18px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),transparent),repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/28px 28px}
+.stagemeta{position:absolute;top:14px;left:18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.stagemeta b{color:var(--gold)}
+.transport{display:flex;align-items:center;gap:12px;padding:12px 20px 18px}
+.transport input[type=range]{flex:1;accent-color:var(--gold)}
+.transport .badge{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.tbtn{width:34px;height:34px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center}
+.tbtn:hover{border-color:var(--gold)}
 
-.galbar{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
-.galbar .ln{color:var(--muted)}.galbar .ln b{color:var(--txt)}
+/* axes panel (the matrix) */
+.axes{padding:12px}
+.axis{border:1px solid var(--hair);border-radius:11px;padding:11px;margin-bottom:9px;background:var(--panel)}
+.axis-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.axis-name{font-size:12px;font-weight:600;letter-spacing:.04em}.axis-name .v{color:var(--muted);font-weight:400;margin-left:6px}
+.axis-tools{display:flex;gap:4px}
+.ic{width:24px;height:24px;border-radius:7px;border:1px solid var(--hair);display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.ic:hover{border-color:var(--gold);color:var(--txt)}
+.ic.locked{background:var(--gold);color:#0E0D0B;border-color:var(--gold)}
+.opts{display:flex;flex-wrap:wrap;gap:5px}
+.opt{font-size:11.5px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);color:var(--muted);cursor:pointer}
+.opt.on{color:#0E0D0B;background:var(--gold);border-color:var(--gold)}
+.opt:hover:not(.on){border-color:var(--gold);color:var(--txt)}
+.seedrow{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid var(--hair);position:sticky;bottom:0;background:rgba(16,13,11,.92);backdrop-filter:blur(6px)}
+.seedrow input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--gold);font-family:ui-monospace,monospace;font-size:13px;letter-spacing:.06em;outline:none}
+.dim{color:var(--faint);font-size:11px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:700;background:var(--elevated);border:1px solid var(--line);border-radius:12px;padding:13px 18px;font-size:13px;color:var(--txt);box-shadow:0 30px 60px -30px #000;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:min(92vw,440px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast b{color:var(--gold)}
 
-.refine{display:grid;grid-template-columns:1fr 320px;gap:20px}
-@media(max-width:860px){.refine{grid-template-columns:1fr}}
-.preview{background:repeating-conic-gradient(#1a1814 0% 25%,#151310 0% 50%) 0 0/24px 24px;border:1px solid var(--line);border-radius:16px;min-height:340px;display:flex;align-items:center;justify-content:center;position:relative}
-.preview .stage{font-size:clamp(22px,5vw,48px)}
-.scrub{position:absolute;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:10px}
-.scrub input[type=range]{flex:1;accent-color:var(--gold)}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
-.panel h3{margin:2px 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:13px;margin-bottom:7px;color:var(--muted)}
-.field input[type=range]{width:100%;accent-color:var(--gold)}
-.swatches{display:flex;gap:8px}.sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer}.sw.on{border-color:#fff}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.prow{display:flex;gap:8px;margin-top:8px}
-.exrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--hair)}
-.exrow:last-child{border-bottom:none}
-.export{display:grid;grid-template-columns:1fr 360px;gap:20px}
-@media(max-width:860px){.export{grid-template-columns:1fr}}
-.note{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
-.pill2{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:var(--gold)}
-
+@media(max-width:1040px){.wsbody{grid-template-columns:1fr;grid-auto-rows:min-content;overflow:auto}
+  .wsleft,.wsright{border:none;border-top:1px solid var(--hair);max-height:none}
+  .wsstage{order:-1;min-height:46vh}}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition:none!important}.orb{animation:none}}
 </style>
 </head>
 <body>
-<div class="bgwrap"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
+<div class="bgwrap"><span class="orb a"></span><span class="orb b"></span></div>
 <div class="grain"></div>
 <div class="cursor"></div><div class="cursor-dot"></div>
-<div class="progress" id="progress"></div>
 
 <nav>
   <span class="brand"><span class="k">◆</span> Kinetic Typography Studio</span>
   <span class="pill">FREE</span><span class="sp"></span>
-  <a class="navlink" href="#looks">Looks</a>
-  <a class="navlink" href="#how">How it works</a>
-  <button class="btn ghost magnetic" style="padding:10px 18px" data-launch>Launch app</button>
+  <button class="btn gold sm magnetic" data-launch>Open the studio →</button>
 </nav>
 
-<main>
-  <header class="hero">
-    <div class="ghostwrap"><div class="ghostword" data-parallax data-speed="22">HEROES</div></div>
-    <div class="wrap">
-      <div class="eyebrow reveal">For creators &amp; musicians</div>
-      <h1 class="reveal-words">One line of lyrics.<br><span class="accent">Infinite</span> animated looks.</h1>
-      <p class="sub reveal">Type your line, pick a style, drop it straight into DaVinci Resolve.
-        No motion‑design skills. Beautifully animated. <b style="color:var(--txt)">Free for everyone.</b></p>
-      <div class="cta reveal">
-        <button class="btn gold magnetic" data-launch>Launch the studio <span class="a">→</span></button>
-        <a class="btn ghost magnetic" href="#looks">See it move</a>
-      </div>
-      <div class="stagecard" id="heroCard" data-tilt>
-        <div class="cap">Live preview · <b id="capName">Neon</b></div>
-        <div class="stage" id="heroStage"></div>
-      </div>
-    </div>
-    <div class="scrollcue">Scroll</div>
-  </header>
-
-  <div class="marquee" aria-hidden="true"><div class="mq-inner"><div class="track">
-    <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span><span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span><span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
-    <span class="item">Neon</span><span class="item">Chrome</span><span class="item">Glitch</span><span class="item">Particles</span><span class="item">Brutalist</span><span class="item">Typewriter</span><span class="item">Retro</span><span class="item">Bold Pop</span><span class="item">Gradient</span>
-  </div></div></div>
-
-  <section id="looks">
-    <div class="wrap">
-      <div class="showhead">
-        <h2 class="h reveal-words">Nine signature looks.<br>One click each.</h2>
-        <p class="muted reveal">Every style re‑skins the exact same line — no two are alike. Pick a vibe, fine‑tune a few knobs, export. The hard part is already done.</p>
-      </div>
-      <div class="grid" id="grid"></div>
-    </div>
-  </section>
-
-  <section id="how" style="padding-top:40px">
-    <div class="wrap">
-      <div class="eyebrow reveal" style="margin-bottom:22px">How it works</div>
-      <div class="steps">
-        <div class="step reveal"><div class="n">01</div><h3>Type one line</h3><p>Drop in a lyric, hook, or quote. That's the whole setup.</p></div>
-        <div class="step reveal"><div class="n">02</div><h3>Pick a look</h3><p>Get a wall of animated styles instantly. Refine with a few simple knobs.</p></div>
-        <div class="step reveal"><div class="n">03</div><h3>Send to your edit</h3><p>Export with transparency and drag it straight into DaVinci Resolve.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section style="padding-top:0">
-    <div class="wrap"><div class="band reveal">
-      <h2>Made to be shared.<br>Free for everyone.</h2>
-      <p>Works with any DaVinci Resolve — free or Studio. No watermark, no paywall, no sign‑up wall. This is our chance to make something genuinely good — and give it away.</p>
-      <button class="btn gold magnetic" data-launch>Open the studio <span class="a">→</span></button>
-      <div class="tags"><span class="tag"><b>OGraf</b> + Lottie export</span><span class="tag"><b>Alpha</b> / transparent</span><span class="tag"><b>1080p</b> · 4K</span><span class="tag"><b>Studio:</b> live timeline sync</span></div>
-    </div></div>
-  </section>
-</main>
-
-<footer><div class="wrap"><span>◆ Kinetic Typography Studio — free &amp; open.</span><span>Built for DaVinci Resolve 21 · OGraf</span></div></footer>
+<header class="land">
+  <div class="eyebrow reveal">For creators &amp; musicians</div>
+  <h1 class="reveal">One line of lyrics.<br><span class="accent">Infinite</span> animated looks.</h1>
+  <p class="reveal">A generative kinetic‑typography studio. Type a line, let the matrix spin up fresh title ideas, refine, and drop them into DaVinci Resolve. Free for everyone.</p>
+  <div class="cta reveal"><button class="btn gold magnetic" data-launch>Launch the studio →</button></div>
+  <div class="landstage reveal"><div class="cap">Live preview · <b id="capName">Neon</b></div><div class="stage" id="landStage"></div></div>
+</header>
 
 <div class="wipe" id="wipe"></div>
 
-<!-- ===================== APP ===================== -->
-<div id="app">
-  <div class="apphead">
+<!-- ===================== THE TOOL ===================== -->
+<div id="app"><div class="ws">
+  <header class="wstop">
     <span class="brand"><span class="k">◆</span> Studio</span>
-    <span class="appsteps" id="appsteps">
-      <span class="s" data-step="input">1 · Input</span><span class="s" data-step="gallery">2 · Looks</span><span class="s" data-step="refine">3 · Refine</span><span class="s" data-step="export">4 · Export</span>
-    </span>
-    <span class="sp"></span>
-    <button class="btn ghost magnetic" style="padding:9px 16px" data-close>✕ Close</button>
+    <div class="linefield"><span>♪</span><input id="wsLine" value="We could be heroes" spellcheck="false"></div>
+    <div class="miniseg" data-g="ar"><button class="on">16:9</button><button>9:16</button><button>1:1</button></div>
+    <div class="miniseg" data-g="dur"><button>2s</button><button class="on">3s</button><button>5s</button></div>
+    <div class="miniseg" data-g="fps"><button>24</button><button class="on">30</button><button>60</button></div>
+    <button class="btn gold magnetic" id="genBtn">🎲 Generate</button>
+    <button class="btn ghost magnetic" id="expBtn">⬇ Export</button>
+    <button class="btn ghost sm" data-close title="Close (Esc)">✕</button>
+  </header>
+  <div class="wsbody" id="wsbody">
+    <aside class="wsleft">
+      <div class="panelhead"><span>Variants</span><button class="ic" id="moreBtn" title="Generate more">＋</button></div>
+      <div class="varlist" id="varList"></div>
+    </aside>
+    <main class="wsstage">
+      <div class="stagewrap"><div class="stagemeta">Preview · <b id="stageLook">Neon</b></div><div class="stage" id="wsStage"></div></div>
+      <div class="transport">
+        <button class="tbtn" id="playBtn" title="Replay">▷</button>
+        <input type="range" min="0" max="100" value="38">
+        <span class="dim">0:01 / 0:03</span>
+        <span class="badge" id="badge">1080p · 30fps · alpha</span>
+      </div>
+    </main>
+    <aside class="wsright">
+      <div class="panelhead"><span>Look matrix</span><span class="dim">🎲 axis · 🔒 lock</span></div>
+      <div class="axes" id="axes"></div>
+      <div class="seedrow"><span class="dim">SEED</span><input id="seedInput" spellcheck="false"><button class="ic" id="copySeed" title="Copy">⧉</button></div>
+    </aside>
   </div>
-  <div class="appbody"><div class="inner">
+</div></div>
 
-    <div class="ascreen" id="a-input">
-      <div class="ihero">
-        <div class="eyebrow" style="margin-bottom:14px">Kinetic Typography Studio</div>
-        <h1>Type one line.<br>Get a wall of <em>animated looks.</em></h1>
-        <p>Drop in a lyric, hook, or quote — pick your favorite style — send it to your edit.</p>
-        <div class="inputwrap"><input id="lineInput" type="text" value="We could be heroes" placeholder="Enter your lyric…"><button class="btn gold magnetic" onclick="generate()">Generate ✨</button></div>
-        <div class="opts">
-          <div class="opt">Duration<div class="chips" data-group><span class="chip">2s</span><span class="chip on">3s</span><span class="chip">5s</span></div></div>
-          <div class="opt">Format<div class="chips" data-group><span class="chip on">16:9</span><span class="chip">9:16</span><span class="chip">1:1</span></div></div>
-          <div class="opt">Vibe<select><option>Auto</option><option>Energetic</option><option>Dreamy</option><option>Aggressive</option><option>Elegant</option></select></div>
-        </div>
-        <p class="muted" style="font-size:13px">Works with any DaVinci Resolve — free or Studio. 100% free.</p>
-      </div>
-    </div>
-
-    <div class="ascreen" id="a-gallery">
-      <div class="galbar">
-        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('input')">← Edit line</button>
-        <div class="ln">Looks for “<b id="galLine">We could be heroes</b>”</div>
-        <span class="sp" style="flex:1"></span>
-        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="generate()">↻ Regenerate</button>
-      </div>
-      <div class="grid" id="appGrid"></div>
-    </div>
-
-    <div class="ascreen" id="a-refine">
-      <div class="galbar">
-        <button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('gallery')">← Back to looks</button>
-        <div class="ln">Refining <b id="refName">Neon</b></div><span class="sp" style="flex:1"></span>
-        <button class="btn gold magnetic" style="padding:10px 18px" onclick="appShow('export')">Export →</button>
-      </div>
-      <div class="refine">
-        <div class="preview"><div class="stage" id="refStage"></div>
-          <div class="scrub"><button class="btn ghost" style="padding:7px 12px" onclick="replay()">▷</button><input type="range" min="0" max="100" value="40"><span class="muted" style="font-size:12px">0:01 / 0:03</span></div>
-        </div>
-        <div class="panel">
-          <h3>Style knobs</h3>
-          <div class="field"><label>Speed</label><input type="range" min="0" max="100" value="55" oninput="setSpeed(this.value)"></div>
-          <div class="field"><label>Intensity</label><input type="range" min="0" max="100" value="70"></div>
-          <div class="field"><label>Color</label><div class="swatches" id="swatches">
-            <span class="sw on" style="background:#D4A574" data-c="#D4A574"></span><span class="sw" style="background:#ff5fae" data-c="#ff5fae"></span><span class="sw" style="background:#6ad0ff" data-c="#6ad0ff"></span><span class="sw" style="background:#7cffa0" data-c="#7cffa0"></span><span class="sw" style="background:#caa8ff" data-c="#caa8ff"></span></div></div>
-          <div class="field"><label>Font</label><div class="seg"><span class="chip on">Display</span><span class="chip">Sans</span><span class="chip">Mono</span><span class="chip">Serif</span></div></div>
-          <div class="field"><label>In / Out</label><div class="seg"><span class="chip on">Rise</span><span class="chip">Pop</span><span class="chip">Wipe</span><span class="chip">Fade</span></div></div>
-          <div class="prow"><button class="btn ghost magnetic" style="flex:1;justify-content:center" onclick="surprise()">🎲 Surprise</button><button class="btn ghost" style="flex:1;justify-content:center">⧉ Duplicate</button></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="ascreen" id="a-export">
-      <div class="galbar"><button class="btn ghost magnetic" style="padding:10px 16px" onclick="appShow('refine')">← Back</button><div class="ln">Export</div></div>
-      <div class="export">
-        <div class="preview" style="min-height:280px"><div class="stage" id="exStage"></div></div>
-        <div class="panel">
-          <h3>Export options</h3>
-          <div class="exrow"><span>Format</span><select><option>OGraf package (.ograf.zip)</option><option>ProRes 4444 (alpha)</option><option>PNG sequence (alpha)</option><option>WebM (alpha)</option></select></div>
-          <div class="exrow"><span>Resolution</span><select><option>1080p</option><option>4K</option><option>720p</option></select></div>
-          <div class="exrow"><span>Frame rate</span><select><option>30</option><option>24</option><option>25</option><option>60</option></select></div>
-          <div class="exrow"><span>Duration</span><span class="muted">3.0 s</span></div>
-          <div class="exrow"><span>Transparent (alpha)</span><span class="pill2">ON</span></div>
-          <button class="btn gold magnetic" style="width:100%;justify-content:center;margin-top:16px">⬇ Download</button>
-          <button class="btn ghost" style="width:100%;justify-content:center;margin-top:10px" disabled>⚡ Send to Resolve · Studio</button>
-          <p class="note">Free: download &amp; drag into the Resolve Media Pool. Studio (later): one‑click live placement on the timeline.</p>
-        </div>
-      </div>
-    </div>
-
-  </div></div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/lenis@1.3/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
 <script>
 const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let LINE='We could be heroes', currentLook='neon';
-const LOOKS=[['neon','Neon'],['chrome','Chrome'],['glitch','Glitch'],['particles','Particles'],['brutalist','Brutalist'],['type','Typewriter'],['retro','Retro'],['pop','Bold Pop'],['grad','Gradient']];
+let LINE='We could be heroes';
 
+/* ---- shared helpers ---- */
 function split(el,text,scatter){el.innerHTML='';[...text].forEach((c,i)=>{const s=document.createElement('span');s.className='ch';s.style.setProperty('--i',i);if(scatter){s.style.setProperty('--dx',(Math.random()*60-30|0)+'px');s.style.setProperty('--dy',(Math.random()*60-30|0)+'px');}s.textContent=c===' '?' ':c;el.appendChild(s);});}
-function applyLook(el,key,text,base){const t=text||LINE;el.className=(base||'stage')+' '+(key==='type'?'look-type':'look-'+key);if(key==='type'){el.textContent=t;}else{split(el,t,key==='particles');}}
 
-/* hero self-demo cycle */
-(function(){const stage=document.getElementById('heroStage'),cap=document.getElementById('capName');let i=0;applyLook(stage,LOOKS[0][0]);cap.textContent=LOOKS[0][1];if(REDUCE)return;
-  setInterval(()=>{stage.style.transition='opacity .35s,filter .35s';stage.style.opacity='0';stage.style.filter='blur(6px)';
-    setTimeout(()=>{i=(i+1)%LOOKS.length;applyLook(stage,LOOKS[i][0]);cap.textContent=LOOKS[i][1];stage.style.opacity='1';stage.style.filter='none';},360);},2600);})();
+/* ================= THE VARIANT MATRIX ================= */
+const FONT={display:"'Clash Display',serif",sans:"'Satoshi',sans-serif",mono:"ui-monospace,Menlo,monospace",serif:"Georgia,'Times New Roman',serif"};
+const PAL={gold:'#D4A574',pink:'#ff5fae',cyan:'#6ad0ff',green:'#7cffa0',violet:'#caa8ff',mono:'#F4EFE6'};
+const SPD={slow:'5.5s',medium:'4s',fast:'2.6s'};
+const AXES=[
+  ['material','Material',[['neon','Neon'],['chrome','Chrome'],['glitch','Glitch'],['particles','Particles'],['brutalist','Brutalist'],['type','Typewriter'],['retro','Retro'],['pop','Bold Pop'],['grad','Gradient']]],
+  ['intro','Intro',[['rise','Rise'],['fade','Fade'],['pop','Pop'],['scatter','Scatter'],['wipe','Wipe'],['typewriter','Type']]],
+  ['idle','Idle',[['none','None'],['pulse','Pulse'],['float','Float'],['flicker','Flicker'],['shimmer','Shimmer']]],
+  ['outro','Outro',[['fade','Fade'],['sink','Sink'],['dissolve','Dissolve'],['shatter','Shatter']]],
+  ['unit','Unit',[['char','Char'],['word','Word'],['line','Line']]],
+  ['order','Order',[['l2r','L→R'],['r2l','R→L'],['center','Center'],['random','Random']]],
+  ['type','Type',[['display','Display'],['sans','Sans'],['mono','Mono'],['serif','Serif']]],
+  ['palette','Palette',[['gold','Gold'],['pink','Pink'],['cyan','Cyan'],['green','Green'],['violet','Violet'],['mono','Mono']]],
+  ['speed','Motion',[['slow','Slow'],['medium','Medium'],['fast','Fast']]],
+  ['bg','Background',[['transparent','Transparent'],['grain','Grain'],['glow','Glow']]]
+];
+const AXMAP=Object.fromEntries(AXES.map(a=>[a[0],a[2]]));
+const ORDER=AXES.map(a=>a[0]);
 
-/* showcase grid (wrapped for entrance + tilt without conflict) */
-(function(){const g=document.getElementById('grid');LOOKS.forEach(([key,name],idx)=>{
-  const wrap=document.createElement('div');wrap.className='card-wrap reveal';
-  wrap.innerHTML=`<div class="card" data-tilt><span class="lbl">${name}</span><span class="num">0${idx+1}</span><div class="demo"></div></div>`;
-  g.appendChild(wrap);const demo=wrap.querySelector('.demo');demo.className='demo '+(key==='type'?'look-type':'look-'+key);
-  if(key==='type'){demo.textContent=LINE;}else{split(demo,LINE,key==='particles');}});})();
+let state={ax:{},lock:{}};
+let library=[], selected=-1;
 
-/* cursor */
-(function(){if(matchMedia('(pointer:coarse)').matches)return;const ring=document.querySelector('.cursor'),dot=document.querySelector('.cursor-dot');let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
-  (function loop(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(loop);})();
-  const hov=()=>ring.classList.add('grow'),out=()=>ring.classList.remove('grow');
-  document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,.card,[data-tilt],input,select,.chip,.sw'))hov();});
-  document.addEventListener('mouseout',e=>{if(e.target.closest('a,button,.card,[data-tilt],input,select,.chip,.sw'))out();});})();
+function pickIdx(key){return Math.floor(Math.random()*AXMAP[key].length);}
+function randomVariant(base){const v={};ORDER.forEach(k=>{ v[k]=(base&&state.lock[k])?state.ax[k]:AXMAP[k][pickIdx(k)][0]; });return v;}
+function encode(v){return ORDER.map(k=>{const i=AXMAP[k].findIndex(o=>o[0]===v[k]);return (i<0?0:i).toString(36);}).join('');}
+function decode(seed){const v={};ORDER.forEach((k,n)=>{const i=parseInt(seed[n]||'0',36);v[k]=(AXMAP[k][isNaN(i)?0:Math.min(i,AXMAP[k].length-1)]||AXMAP[k][0])[0];});return v;}
 
-/* magnetic (delegated so it covers app buttons too) */
-(function(){if(REDUCE)return;
-  document.addEventListener('mousemove',e=>{const el=e.target.closest('.magnetic');if(!el)return;const r=el.getBoundingClientRect();
-    el.style.transform=`translate(${(e.clientX-(r.left+r.width/2))*.3}px,${(e.clientY-(r.top+r.height/2))*.4}px)`;});
-  document.addEventListener('mouseout',e=>{const el=e.target.closest('.magnetic');if(!el)return;el.style.transition='transform .4s var(--e)';el.style.transform='';setTimeout(()=>el.style.transition='',400);});})();
+/* render a variant into a stage element (base class: 'stage' or 'vstage') */
+function renderVariant(v,el,base){
+  const look=v.material;
+  el.className=(base||'stage')+' '+(look==='type'?'look-type':'look-'+look);
+  el.style.setProperty('--gold',PAL[v.palette]||PAL.gold);
+  el.style.fontFamily = look==='type' ? '' : (FONT[v.type]||FONT.display);
+  const dur=SPD[v.speed]||SPD.medium;
+  if(look==='type'){el.textContent=LINE;}else{split(el,LINE,look==='particles');}
+  el.style.animationDuration=dur; el.querySelectorAll('.ch').forEach(c=>c.style.animationDuration=dur);
+}
 
-if(window.VanillaTilt&&!REDUCE)VanillaTilt.init(document.querySelectorAll('[data-tilt]'),{max:7,speed:500,glare:true,'max-glare':.12,scale:1.01});
+/* ---- build the right-hand matrix panel ---- */
+function buildAxesPanel(){
+  const box=document.getElementById('axes');box.innerHTML='';
+  AXES.forEach(([key,label,opts])=>{
+    const ax=document.createElement('div');ax.className='axis';ax.dataset.axis=key;
+    ax.innerHTML=`<div class="axis-h"><span class="axis-name">${label}<span class="v" data-v></span></span>
+      <span class="axis-tools"><button class="ic" data-rand="${key}" title="Randomize">🎲</button><button class="ic" data-lock="${key}" title="Lock">🔓</button></span></div>
+      <div class="opts">${opts.map(o=>`<span class="opt" data-set="${key}" data-id="${o[0]}">${o[1]}</span>`).join('')}</div>`;
+    box.appendChild(ax);
+  });
+}
+function refreshPanel(){
+  ORDER.forEach(k=>{
+    const cur=state.ax[k];
+    document.querySelectorAll(`.opt[data-set="${k}"]`).forEach(o=>o.classList.toggle('on',o.dataset.id===cur));
+    const lab=AXMAP[k].find(o=>o[0]===cur);
+    const vEl=document.querySelector(`.axis[data-axis="${k}"] [data-v]`); if(vEl)vEl.textContent=lab?' · '+lab[1]:'';
+    const lk=document.querySelector(`.ic[data-lock="${k}"]`); if(lk){lk.textContent=state.lock[k]?'🔒':'🔓';lk.classList.toggle('locked',!!state.lock[k]);}
+  });
+  document.getElementById('seedInput').value=encode(state.ax);
+  document.getElementById('stageLook').textContent=(AXMAP.material.find(o=>o[0]===state.ax.material)||['','—'])[1];
+}
 
-/* smooth scroll + scroll-driven motion (MORE) */
-let lenis=null;
-(function(){const hasG=!!window.gsap;if(hasG)gsap.registerPlugin(window.ScrollTrigger);
-  if(window.Lenis&&!REDUCE){lenis=new Lenis({lerp:.1,smoothWheel:true});
-    if(hasG){lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0);}else{(function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();}}
-  if(!hasG||REDUCE)return;
-  // progress bar
-  gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:document.body,start:'top top',end:'bottom bottom',scrub:.3}});
-  // masked headline word reveals
-  document.querySelectorAll('.reveal-words').forEach(h=>{const original=h.innerHTML;try{h.innerHTML='';h._w=[];
-    original.split(/(<br\s*\/?>)/i).forEach(seg=>{if(/^<br/i.test(seg)){h.appendChild(document.createElement('br'));return;}
-      seg.replace(/<span class="accent">(.*?)<\/span>|([^<]+)/g,(m,acc,plain)=>{(acc||plain||'').split(' ').filter(Boolean).forEach(w=>{const mk=document.createElement('span');mk.style.cssText='display:inline-block;overflow:hidden;vertical-align:top';const inr=document.createElement('span');inr.style.display='inline-block';inr.textContent=w+' ';if(acc)inr.classList.add('accent');mk.appendChild(inr);h.appendChild(mk);h._w.push(inr);});return m;});});
-    if(!h._w.length){h.innerHTML=original;return;}gsap.set(h._w,{yPercent:115});gsap.to(h._w,{yPercent:0,duration:1,ease:'power4.out',stagger:.05,scrollTrigger:{trigger:h,start:'top 90%'}});}catch(e){h.innerHTML=original;}});
-  // generic opacity reveals
-  gsap.set('.reveal',{opacity:0});ScrollTrigger.batch('.reveal',{start:'top 92%',onEnter:b=>gsap.to(b,{opacity:1,duration:.9,ease:'power2.out',stagger:.08})});
-  // card entrance (wrapper -> no tilt conflict): rise + slight rotate
-  gsap.set('.card-wrap',{opacity:0,y:60,rotateZ:2});
-  ScrollTrigger.batch('.card-wrap',{start:'top 90%',onEnter:b=>gsap.to(b,{opacity:1,y:0,rotateZ:0,duration:1,ease:'power3.out',stagger:.09})});
-  // parallax layers
-  document.querySelectorAll('[data-parallax]').forEach(el=>gsap.to(el,{yPercent:-(el.dataset.speed||20),ease:'none',scrollTrigger:{trigger:el,start:'top bottom',end:'bottom top',scrub:1}}));
-  // hero card: parallax + scale on scroll
-  gsap.to('#heroCard',{yPercent:14,scale:.94,ease:'none',scrollTrigger:{trigger:'#heroCard',start:'top 70%',end:'bottom top',scrub:1}});
-  // marquee skew reacting to scroll velocity (skews inner, not the CSS-animated track)
-  const mqi=document.querySelector('.mq-inner');
-  if(mqi)ScrollTrigger.create({onUpdate:self=>{const v=Math.max(-14,Math.min(14,self.getVelocity()/-260));gsap.to(mqi,{skewX:v,duration:.4,overwrite:true,onComplete:()=>gsap.to(mqi,{skewX:0,duration:.5})});}});
-})();
+/* ---- library ---- */
+function makeVarCard(v,i){
+  const card=document.createElement('div');card.className='var'+(i===selected?' sel':'');card.dataset.i=i;
+  card.innerHTML=`<div class="var-stage"></div><div class="var-meta"><span class="s">${encode(v)}</span><button class="var-fav" title="Favorite">♥</button></div>`;
+  renderVariant(v,card.querySelector('.var-stage'),'vstage');
+  return card;
+}
+function renderLibrary(){const l=document.getElementById('varList');l.innerHTML='';library.forEach((v,i)=>l.appendChild(makeVarCard(v,i)));}
+function selectVariant(i){selected=i;state.ax={...library[i]};applyCurrent();refreshPanel();
+  document.querySelectorAll('.var').forEach(c=>c.classList.toggle('sel',+c.dataset.i===i));}
+function applyCurrent(){renderVariant(state.ax,document.getElementById('wsStage'),'stage');}
 
-/* ===================== APP logic ===================== */
-const app=document.getElementById('app'),wipe=document.getElementById('wipe');
+function generate(n,append){const batch=Array.from({length:n||6},()=>randomVariant(true));
+  if(append){library=library.concat(batch);}else{library=batch;}
+  renderLibrary();selectVariant(append?selected<0?0:selected:0);
+  if(!append)selectVariant(0);}
+
+/* ---- interactions ---- */
+function bindWorkspace(){
+  buildAxesPanel();
+  document.getElementById('genBtn').onclick=()=>generate(6,false);
+  document.getElementById('moreBtn').onclick=()=>generate(6,true);
+  let _tt;const showToast=html=>{const t=document.getElementById('toast');if(!t)return;t.innerHTML=html;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('on'),3400);};
+  document.getElementById('expBtn').onclick=()=>showToast('Export (mock) — would build <b>'+(LINE||'line')+'.ograf.zip</b><br><span class="dim">manifest .ograf.json + graphic.mjs · look + goToTime() + fonts inlined · seed '+encode(state.ax)+'</span>');
+  document.getElementById('playBtn').onclick=applyCurrent;
+  document.getElementById('wsLine').addEventListener('input',e=>{LINE=(e.target.value||'…').trim()||'…';applyCurrent();renderLibrary();});
+  document.getElementById('seedInput').addEventListener('change',e=>{state.ax=decode(e.target.value.trim());if(selected>=0)library[selected]={...state.ax};applyCurrent();refreshPanel();renderLibrary();});
+  document.getElementById('copySeed').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(encode(state.ax));};
+  // delegated panel + library clicks
+  document.getElementById('app').addEventListener('click',e=>{
+    const set=e.target.closest('.opt[data-set]'); if(set){const k=set.dataset.set;state.ax[k]=set.dataset.id;commitCurrent();return;}
+    const rnd=e.target.closest('.ic[data-rand]'); if(rnd){const k=rnd.dataset.rand;state.ax[k]=AXMAP[k][pickIdx(k)][0];commitCurrent();return;}
+    const lk=e.target.closest('.ic[data-lock]'); if(lk){const k=lk.dataset.lock;state.lock[k]=!state.lock[k];refreshPanel();return;}
+    const fav=e.target.closest('.var-fav'); if(fav){fav.classList.toggle('on');e.stopPropagation();return;}
+    const card=e.target.closest('.var'); if(card){selectVariant(+card.dataset.i);return;}
+  });
+  document.querySelectorAll('.miniseg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    const ar=document.querySelector('.miniseg[data-g="ar"] .on')?.textContent, fps=document.querySelector('.miniseg[data-g="fps"] .on')?.textContent;
+    document.getElementById('badge').textContent=(ar==='9:16'?'1080×1920':'1080p')+' · '+fps+'fps · alpha';}));
+}
+function commitCurrent(){if(selected>=0)library[selected]={...state.ax};applyCurrent();refreshPanel();
+  const c=document.querySelector(`.var[data-i="${selected}"]`);if(c){renderVariant(state.ax,c.querySelector('.var-stage'),'vstage');c.querySelector('.s').textContent=encode(state.ax);}}
+
+/* ===================== open / close ===================== */
+const app=document.getElementById('app'),wipe=document.getElementById('wipe');let lenis=null,wsReady=false;
 function openApp(){
-  const reveal=()=>{app.classList.add('on');buildAppGrid();appShow('input');if(lenis)lenis.stop();document.body.style.overflow='hidden';};
-  if(window.gsap&&!REDUCE){const tl=gsap.timeline();tl.set(wipe,{transformOrigin:'50% 100%'}).to(wipe,{scaleY:1,duration:.45,ease:'power3.inOut'}).add(reveal).to(wipe,{scaleY:0,transformOrigin:'50% 0%',duration:.5,ease:'power3.inOut'},'+=.05');}
-  else{reveal();}
+  const reveal=()=>{app.classList.add('on');if(!wsReady){bindWorkspace();generate(6,false);wsReady=true;}if(lenis)lenis.stop();document.body.style.overflow='hidden';};
+  if(window.gsap&&!REDUCE){gsap.timeline().set(wipe,{scaleY:0,transformOrigin:'50% 100%'}).to(wipe,{scaleY:1,duration:.42,ease:'power3.inOut'}).add(reveal).to(wipe,{scaleY:0,transformOrigin:'50% 0%',duration:.48,ease:'power3.inOut'},'+=.04');}
+  else reveal();
 }
 function closeApp(){app.classList.remove('on');if(lenis)lenis.start();document.body.style.overflow='';}
 document.querySelectorAll('[data-launch]').forEach(b=>b.addEventListener('click',openApp));
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeApp));
 addEventListener('keydown',e=>{if(e.key==='Escape'&&app.classList.contains('on'))closeApp();});
 
-function appShow(step){['input','gallery','refine','export'].forEach(s=>{document.getElementById('a-'+s).classList.toggle('on',s===step);document.querySelector(`.appsteps .s[data-step="${s}"]`)?.classList.toggle('active',s===step);});
-  document.querySelector('.appbody').scrollTop=0;
-  if(step==='export'){const ex=document.getElementById('exStage');applyLook(ex,currentLook,LINE);}}
-function buildAppGrid(){const g=document.getElementById('appGrid');if(g.dataset.built&&g.dataset.line===LINE)return;g.dataset.built='1';g.dataset.line=LINE;g.innerHTML='';
-  LOOKS.forEach(([key,name],idx)=>{const wrap=document.createElement('div');wrap.className='card-wrap';
-    wrap.innerHTML=`<div class="card" data-tilt><span class="lbl">${name}</span><span class="num">0${idx+1}</span><div class="demo"></div><button class="btn gold magnetic" style="position:absolute;bottom:10px;left:12px;padding:7px 12px;font-size:12px" onclick="openRefine('${key}','${name}')">Edit →</button></div>`;
-    g.appendChild(wrap);applyLook(wrap.querySelector('.demo'),key,LINE,'demo');});
-  if(window.VanillaTilt&&!REDUCE)VanillaTilt.init(g.querySelectorAll('[data-tilt]'),{max:7,speed:500,glare:true,'max-glare':.12});}
-function generate(){LINE=(document.getElementById('lineInput').value||'Your lyric here').trim();document.getElementById('galLine').textContent=LINE;document.getElementById('appGrid').dataset.line='';buildAppGrid();appShow('gallery');}
-function openRefine(key,name){currentLook=key;document.getElementById('refName').textContent=name;applyLook(document.getElementById('refStage'),key,LINE);appShow('refine');}
-function replay(){openRefine(currentLook,document.getElementById('refName').textContent);}
-function setSpeed(v){const s=document.getElementById('refStage'),d=(6-(v/100)*4)+'s';s.style.animationDuration=d;s.querySelectorAll('.ch').forEach(c=>c.style.animationDuration=d);}
-function surprise(){const r=LOOKS[Math.floor(Math.random()*LOOKS.length)];openRefine(r[0],r[1]);}
-document.addEventListener('click',e=>{const sw=e.target.closest('#swatches .sw');if(sw){document.querySelectorAll('#swatches .sw').forEach(x=>x.classList.remove('on'));sw.classList.add('on');const rs=document.getElementById('refStage');if(rs)rs.style.setProperty('--gold',sw.dataset.c);}
-  const c=e.target.closest('.chips .chip,.seg .chip');if(c){const grp=c.parentElement;grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');}});
+/* ===================== landing bits ===================== */
+(function(){const looks=AXMAP.material;const stage=document.getElementById('landStage'),cap=document.getElementById('capName');let i=0;
+  const show=k=>{renderVariant({material:looks[k][0],palette:'gold',type:'display',speed:'medium'},stage,'stage');cap.textContent=looks[k][1];};
+  show(0);if(REDUCE)return;setInterval(()=>{stage.style.transition='opacity .35s,filter .35s';stage.style.opacity='0';stage.style.filter='blur(6px)';
+    setTimeout(()=>{i=(i+1)%looks.length;show(i);stage.style.opacity='1';stage.style.filter='none';},360);},2600);})();
+
+(function(){if(matchMedia('(pointer:coarse)').matches)return;const ring=document.querySelector('.cursor'),dot=document.querySelector('.cursor-dot');let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function loop(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(loop);})();
+  document.addEventListener('mouseover',e=>{if(e.target.closest('a,button,input,.opt,.var,.ic,select'))ring.classList.add('grow');});
+  document.addEventListener('mouseout',e=>{if(e.target.closest('a,button,input,.opt,.var,.ic,select'))ring.classList.remove('grow');});})();
+
+(function(){if(REDUCE)return;document.addEventListener('mousemove',e=>{const el=e.target.closest('.magnetic');if(!el)return;const r=el.getBoundingClientRect();el.style.transform=`translate(${(e.clientX-(r.left+r.width/2))*.3}px,${(e.clientY-(r.top+r.height/2))*.4}px)`;});
+  document.addEventListener('mouseout',e=>{const el=e.target.closest('.magnetic');if(!el)return;el.style.transition='transform .4s var(--e)';el.style.transform='';setTimeout(()=>el.style.transition='',400);});})();
+
+(function(){const hasG=!!window.gsap;if(hasG)gsap.registerPlugin(window.ScrollTrigger);
+  if(window.Lenis&&!REDUCE){lenis=new Lenis({lerp:.1});if(hasG){lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(t=>lenis.raf(t*1000));gsap.ticker.lagSmoothing(0);}else{(function raf(t){lenis.raf(t);requestAnimationFrame(raf);})();}}
+  if(!hasG||REDUCE)return;gsap.set('.reveal',{opacity:0,y:24});ScrollTrigger.batch('.reveal',{start:'top 92%',onEnter:b=>gsap.to(b,{opacity:1,y:0,duration:.9,ease:'power2.out',stagger:.08})});})();
+
 if(location.hash==='#app')openApp();
 </script>
 </body>
