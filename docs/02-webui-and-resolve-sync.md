@@ -155,6 +155,32 @@ Linux‑OK; plugins are not).
   **live, playhead‑aware** placement and updates on the timeline. This is the "mega selling point," and it's a
   **packaging layer over the same code**, not a separate product.
 
+### B.7 Editions support matrix (firm requirement: support BOTH free and Studio)
+
+The product must work for **free Resolve users with reduced capability** and **Studio users with full
+live‑sync**, from **one codebase** via **graceful degradation** (detect the host, feature‑flag the sync/timeline
+actions). The web‑app core (editor + generator + export) is edition/OS‑independent; only the Resolve‑side
+*automation* differs.
+
+| Capability | **Free** (Mac/Win/Linux) | **Studio** (Mac/Win) | **Studio** (Linux) |
+|---|---|---|---|
+| Use the web app (variants, preview, export) | ✅ | ✅ | ✅ |
+| Export `.ograf.zip` / `.json` / Lottie | ✅ | ✅ | ✅ |
+| Native OGraf/Lottie **drag‑drop** into Media Pool (alpha) | 🟡 likely (🧪 verify) | ✅ | ✅ |
+| **Fallback:** import rendered alpha file (PNG‑seq / ProRes 4444 / WebM‑alpha) | ✅ always | ✅ | ✅ |
+| **Embedded web UI inside Resolve** (Workflow Integration) | ❌ | ✅ | ❌ (no Linux plugins) |
+| **Live playhead‑aware sync** + auto‑place on timeline | ❌ | ✅ (polling) | ✅ via external script bridge (no embedded UI) |
+| External scripting connector (Python/Lua) | ❌ | ✅ | ✅ |
+
+**Design rules:**
+- **One core build.** The generator/editor/exporter is a plain web app usable in any browser by anyone.
+- **Host detection.** At runtime, check whether `WorkflowIntegration.node`/`GetResolve()` is reachable (i.e.
+  we're inside the Electron plugin). If yes → show "place at playhead / sync" actions; if no → export‑only UX.
+- **Guaranteed‑usable free tier (de‑risks the 🟡).** If native OGraf import turns out to be Studio‑gated, the
+  app can render the same look to a **flat alpha asset** (PNG sequence / ProRes 4444 / WebM‑alpha, per Dossier
+  #1 §F) which **every Resolve edition imports as ordinary media** — so free users always get a usable result,
+  losing only the "live" OGraf graphic, not the output.
+
 ---
 
 ## Verification status
