@@ -12,6 +12,10 @@ A web tool (English UI) that turns **one song lyric line** into **multiple anima
 - **[`docs/01-research-feature-and-tooling.md`](docs/01-research-feature-and-tooling.md)** —
   Research Dossier #1: the feature catalog (must‑have vs. nice‑to‑have for animating text) and the
   landscape of adaptable open‑source projects, with a recommended stack and a PoC milestone.
+- **[`docs/02-webui-and-resolve-sync.md`](docs/02-webui-and-resolve-sync.md)** —
+  Research Dossier #2: open‑source web‑UI editor shells to fork/reuse, and the DaVinci Resolve
+  integration interfaces — **can we sync a web view with Resolve?** (Yes: Workflow Integration
+  Plugins, Studio‑only, polling‑based.)
 - `OGrafLottieResolve_DossierundHandover.md` — the original project brief (German).
 
 ## Direction at a glance
