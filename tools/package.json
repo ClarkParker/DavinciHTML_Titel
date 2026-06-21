@@ -17,6 +17,8 @@
     "@fontsource/anton": "^5.2.7",
     "@fontsource/space-mono": "^5.2.9",
     "@sparticuz/chromium": "^119.0.2",
+    "flubber": "^0.4.2",
+    "gsap": "^3.15.0",
     "opentype.js": "^2.0.0",
     "playwright": "^1.61.0",
     "polymorph-js": "^1.0.2",

@@ -2,3 +2,4 @@ tools/node_modules/
 tools/shots/
 tools/package-lock.json
 tools/morphtest.html
+tools/morphcompare.html
