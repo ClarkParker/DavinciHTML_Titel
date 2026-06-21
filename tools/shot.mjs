@@ -11,7 +11,8 @@ const H      = parseInt(process.argv[7] || '900', 10);
 const full   = process.argv[8] === 'full';
 
 const browser = await puppeteer.launch({
-  args: [...chromium.args, '--no-sandbox', '--disable-gpu', '--force-color-profile=srgb'],
+  args: [...chromium.args, '--no-sandbox', '--disable-gpu', '--force-color-profile=srgb',
+         '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blacklist'],
   executablePath: await chromium.executablePath(),
   headless: true,
   defaultViewport: { width: W, height: H, deviceScaleFactor: 1 }
