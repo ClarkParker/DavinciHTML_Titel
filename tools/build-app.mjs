@@ -21,9 +21,12 @@ const strip = code => code
   .replace(/^([ \t]*)export\s+default\s+/gm, "$1") // (safety) export default X → X
   .replace(/^([ \t]*)export\s+/gm, "$1");     // export const/function → const/function
 
+const vendor   = read("app/vendor/animation-timeline.min.js");
 const engine   = strip(read("engine/engine.mjs"));
 const renderer = strip(read("engine/dom-renderer.mjs"));
 const inlined =
+  `/* ====== vendored: animation-timeline-js v2.3.5 (MIT) — bundled for offline/self-contained use ====== */\n` +
+  vendor + "\n" +
   `/* ====== inlined engine — DO NOT EDIT HERE; edit engine/*.mjs then run tools/build-app.mjs ====== */\n` +
   engine + "\n" + renderer +
   `\n/* ====== app ====== */`;

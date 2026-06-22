@@ -92,15 +92,24 @@
   .accent{height:3px;margin:3.2cqh auto 0;width:min(58%,420px);border-radius:3px;transform:scaleX(0);transform-origin:50% 50%;
     background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent)}
 
-  /* ---------- transport ---------- */
-  .transport{display:flex;align-items:center;gap:12px;padding:10px 18px;border-top:1px solid var(--hair);background:rgba(20,18,14,.5)}
-  .play{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-size:14px;flex:0 0 auto}
-  .play:hover{border-color:var(--gold);color:var(--gold)}
-  .scrub{flex:1;min-width:0;appearance:none;height:6px;border-radius:999px;outline:none;
-    background:linear-gradient(90deg,var(--gold) var(--p,50%),var(--elevated) var(--p,50%))}
-  .scrub::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);border:2px solid var(--bg);cursor:pointer}
-  .tc{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
-  .badge{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+  /* ---------- transport + timeline ---------- */
+  .transport{display:flex;flex-direction:column;gap:8px;padding:9px 14px 11px;border-top:1px solid var(--hair);
+    background:linear-gradient(180deg,rgba(255,255,255,.012),rgba(20,18,14,.5))}
+  .tbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .tctrl{display:flex;align-items:center;gap:5px}
+  .tbtn{height:30px;min-width:30px;padding:0 7px;border-radius:8px;border:1px solid var(--line);
+    display:grid;place-items:center;font-size:12px;color:var(--txt);font-family:var(--mono)}
+  .tbtn:hover{border-color:var(--gold);color:var(--gold)}
+  .tbtn.on{background:var(--gold);border-color:var(--gold);color:#0E0D0B}
+  .tbtn.play{font-size:13px}
+  .tsep{width:1px;height:20px;background:var(--hair);margin:0 3px}
+  .treadout{display:flex;align-items:center;gap:10px}
+  .tc{font-family:var(--mono);font-size:13px;color:var(--txt);font-variant-numeric:tabular-nums}
+  .tc small{color:var(--faint)}
+  .tframe{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .badge{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 9px;white-space:nowrap}
+  .tl-host{position:relative;height:92px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+  #timeline{position:absolute;inset:0;width:100%;height:100%}
 
   /* ---------- controls ---------- */
   .controls{border-left:1px solid var(--hair);overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
@@ -150,10 +159,25 @@
         </div>
       </div>
       <footer class="transport">
-        <button class="play" id="play" title="Play (Space)">▶</button>
-        <input type="range" class="scrub" id="scrub" min="0" max="1000" value="500">
-        <span class="tc" id="tc">0.00s / 0.00s</span>
-        <span class="badge" id="badge">1920×1080 · 30fps · alpha</span>
+        <div class="tbar">
+          <div class="tctrl">
+            <button class="tbtn" id="toStart" title="Anfang">⏮</button>
+            <button class="tbtn" id="framePrev" title="−1 Frame (,)">‹</button>
+            <button class="tbtn play" id="play" title="Play/Pause (Leertaste)">▶</button>
+            <button class="tbtn" id="frameNext" title="+1 Frame (.)">›</button>
+            <button class="tbtn" id="toEnd" title="Ende">⏭</button>
+            <span class="tsep"></span>
+            <button class="tbtn" id="kfPrev" title="Vorheriger Keyframe">◆‹</button>
+            <button class="tbtn" id="kfNext" title="Nächster Keyframe">›◆</button>
+            <button class="tbtn on" id="loop" title="Loop">⟲</button>
+          </div>
+          <div class="treadout">
+            <span class="tc" id="tc">0.00<small>/0.00s</small></span>
+            <span class="tframe" id="tframe">f0</span>
+            <span class="badge" id="badge">1920×1080 · 30fps · alpha</span>
+          </div>
+        </div>
+        <div class="tl-host"><div id="timeline"></div></div>
       </footer>
     </section>
 
@@ -210,27 +234,52 @@
 
   const $ = id => document.getElementById(id);
   let state = { ...DEFAULT_STATE };
-  let t = 0.5, playing = false, raf = 0, last = 0;
+  let t = 0.5, playing = false, raf = 0, last = 0, loop = true;
   let genBase = 1, favorites = new Set();
+  const fps = 30, curDur = () => duration(state);
   const stageR = createDomRenderer($("title"), $("accent"));
 
-  function draw(){
+  /* ---- professional timeline: animation-timeline-js (MIT), themed + wired to the engine ---- */
+  const TL = new timelineModule.Timeline({
+    id:"timeline", headerHeight:22, fillColor:"#16140F", headerFillColor:"#141210",
+    labelsColor:"#A8A096", tickColor:"rgba(235,218,176,.30)", selectionColor:"rgba(212,165,116,.30)",
+    font:"10px ui-monospace, Menlo, monospace", snapEnabled:false, keyframesDraggable:false,
+    timelineStyle:{ fillColor:"#EBDAB0", strokeColor:"#EBDAB0", width:2,
+      capStyle:{ fillColor:"#EBDAB0", strokeColor:"#0E0D0B", width:12, height:10 } },
+    rowsStyle:{ height:34, fillColor:"#1C1917", marginBottom:2,
+      groupsStyle:{ fillColor:"rgba(212,165,116,.15)", strokeColor:"rgba(212,165,116,.42)", strokeThickness:1, height:7, radii:4, marginTop:"auto" },
+      keyframesStyle:{ fillColor:"#D4A574", strokeColor:"#0E0D0B", strokeThickness:1, width:11, height:11 } }
+  });
+  TL._formatUnitsText = ms => (ms/1000).toFixed(Math.abs(ms%1000)<1?0:1)+"s";
+  const phaseTimes = () => [0, state.inDur, state.inDur+state.hold, curDur()];
+  function rebuildTimeline(){
+    const p = phaseTimes(), end = p.length-1;
+    TL.setModel({ rows:[{ keyframesDraggable:false,
+      keyframes: p.map((s,i)=>({ val:s*1000, style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" } })) }] });
+  }
+  TL.onTimeChanged(e=>{ if(e.source===timelineModule.TimelineEventSource.User){ stop(); t=clamp(e.val/1000/curDur(),0,1); renderStage(); } });
+
+  function renderStage(){
     $("stage").dataset.aspect = state.aspect;
     const f = stageR.render(state, t);
-    $("scrub").value = Math.round(t*1000);
-    $("scrub").style.setProperty("--p",(t*100).toFixed(1)+"%");
-    $("tc").textContent = f.timeSec.toFixed(2)+"s / "+f.dur.toFixed(2)+"s";
-    const res = {"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect];
-    $("badge").textContent = res+" · 30fps · alpha";
+    $("tc").innerHTML = f.timeSec.toFixed(2)+"<small>/"+f.dur.toFixed(2)+"s</small>";
+    $("tframe").textContent = "f"+Math.round(f.timeSec*fps);
+    $("badge").textContent = ({"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect])+" · 30fps · alpha";
   }
-  function stop(){ playing=false; cancelAnimationFrame(raf); $("play").textContent="▶"; }
+  function draw(rebuild){ if(rebuild) rebuildTimeline(); renderStage(); TL.setTime(t*curDur()*1000); }
+  function stop(){ playing=false; cancelAnimationFrame(raf); $("play").textContent="▶"; $("play").classList.remove("on"); }
   function play(){
     if(playing) return stop();
-    playing=true; $("play").textContent="❚❚"; if(t>=0.999) t=0; last=performance.now();
-    const step=ts=>{ if(!playing)return; t=clamp(t+(ts-last)/1000/duration(state),0,1); last=ts; draw();
-      if(t>=1) return stop(); raf=requestAnimationFrame(step); };
+    playing=true; $("play").textContent="❚❚"; $("play").classList.add("on"); if(t>=0.999) t=0; last=performance.now();
+    const step=ts=>{ if(!playing)return; t+=(ts-last)/1000/curDur(); last=ts;
+      if(t>=1){ if(loop){ t%=1; } else { t=1; renderStage(); TL.setTime(curDur()*1000); return stop(); } }
+      renderStage(); TL.setTime(t*curDur()*1000); raf=requestAnimationFrame(step); };
     raf=requestAnimationFrame(step);
   }
+  const stepFrame = dir => { stop(); t=clamp(t+dir*(1/fps)/curDur(),0,1); draw(false); };
+  function jumpKeyframe(dir){ stop(); const D=curDur(), now=t*D, eps=1e-3, ks=phaseTimes();
+    let target = dir>0 ? ks.find(k=>k>now+eps) : [...ks].reverse().find(k=>k<now-eps);
+    if(target==null) target = dir>0 ? D : 0; t=clamp(target/D,0,1); draw(false); }
 
   function buildCards(){
     const host = $("cards"); host.innerHTML="";
@@ -244,7 +293,7 @@
       createDomRenderer(card.querySelector(".vtitle"), null).render(v, 0.5);
       card.addEventListener("click", e=>{
         if(e.target.closest(".fav")){ favorites.has(k)?favorites.delete(k):favorites.add(k); buildCards(); return; }
-        state = { ...v }; syncControls(); draw(); markActive(i);
+        state = { ...v }; syncControls(); draw(true); markActive(i);
       });
       host.appendChild(card);
     }
@@ -280,20 +329,29 @@
   seg("order",v=>{ state.order=v; draw(); });
   seg("accentToggle",v=>{ state.accent=v==="1"; $("accentV").textContent=state.accent?"On":"Off"; draw(); });
   $("stagger").addEventListener("input",e=>{ state.stagger=+e.target.value; $("staggerV").textContent=state.stagger.toFixed(2); draw(); });
-  $("inDur").addEventListener("input",e=>{ state.inDur=+e.target.value; $("inV").textContent=state.inDur.toFixed(2)+"s"; draw(); });
-  $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(); });
-  $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(); });
+  $("inDur").addEventListener("input",e=>{ state.inDur=+e.target.value; $("inV").textContent=state.inDur.toFixed(2)+"s"; draw(true); });
+  $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(true); });
+  $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(true); });
   $("weight").addEventListener("input",e=>{ state.weight=+e.target.value; $("weightV").textContent=state.weight; draw(); });
   $("colors").addEventListener("click",e=>{ const s=e.target.closest(".sw"); if(!s)return;
     [...$("colors").children].forEach(x=>x.classList.remove("on")); s.classList.add("on"); state.color=s.dataset.c; draw(); });
-  $("scrub").addEventListener("input",e=>{ stop(); t=+e.target.value/1000; draw(); });
   $("play").addEventListener("click",play);
+  $("loop").addEventListener("click",()=>{ loop=!loop; $("loop").classList.toggle("on",loop); });
+  $("toStart").addEventListener("click",()=>{ stop(); t=0; draw(false); });
+  $("toEnd").addEventListener("click",()=>{ stop(); t=1; draw(false); });
+  $("framePrev").addEventListener("click",()=>stepFrame(-1));
+  $("frameNext").addEventListener("click",()=>stepFrame(1));
+  $("kfPrev").addEventListener("click",()=>jumpKeyframe(-1));
+  $("kfNext").addEventListener("click",()=>jumpKeyframe(1));
   $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 neue Varianten · Seed-Basis "+genBase); });
   $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
   $("export").addEventListener("click",()=>toast("Export (PNG-Seq · WebM-Alpha · OGraf) — kommt als Nächstes."));
-  addEventListener("keydown",e=>{ if(e.code==="Space"&&e.target.tagName!=="INPUT"){ e.preventDefault(); play(); } });
+  addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT")return;
+    if(e.code==="Space"){ e.preventDefault(); play(); }
+    else if(e.key===","){ e.preventDefault(); stepFrame(-1); }
+    else if(e.key==="."){ e.preventDefault(); stepFrame(1); } });
 
-  function init(){ buildCards(); draw(); window.__ready=true; }
+  function init(){ buildCards(); draw(true); window.__ready=true; }
   document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();
 </script>
 </body>
