@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kinetic Engine · Phase 0</title>
+<style>
+  :root{
+    --bg:#0E0D0B; --surface:#16140F; --elevated:#1C1917;
+    --hair:rgba(255,255,255,.07); --line:rgba(235,218,176,.13);
+    --txt:#F4EFE6; --muted:#A8A096; --faint:#6E665C; --gold:#D4A574; --gold2:#EBDAB0;
+    --disp:"Bricolage Grotesque","Georgia",serif;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--txt);font-family:var(--mono);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    height:100vh;overflow:hidden;padding:24px}
+
+  /* resolution-independent stage (Pillar 4) */
+  .stage{
+    position:relative; container-type:size;
+    aspect-ratio:16/9; max-width:96vw; max-height:78vh;
+    width:min(96vw, calc(78vh * 16/9));
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    border:1px solid var(--hair); border-radius:10px;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #1b1610 0%, transparent 60%),
+      radial-gradient(900px 600px at 90% 120%, #14120d 0%, transparent 55%),
+      var(--bg);
+  }
+  .stage[data-aspect="9:16"]{ aspect-ratio:9/16; width:min(96vw, calc(78vh * 9/16)); }
+  .stage[data-aspect="1:1"]{ aspect-ratio:1/1; width:min(96vw, 78vh); }
+  /* tasteful transparency hint (not a loud checker) */
+  .stage::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+    background-image:linear-gradient(45deg,rgba(255,255,255,.012) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.012) 75%),
+                     linear-gradient(45deg,rgba(255,255,255,.012) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.012) 75%);
+    background-size:46px 46px;background-position:0 0,23px 23px}
+  .tag{position:absolute;top:14px;left:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+  .tag b{color:var(--gold)}
+
+  .scene{position:relative;text-align:center;padding:0 6%;max-width:92%}
+  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:-.02em;
+    font-size:clamp(22px,8.5cqw,130px);color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
+  .title .tok{display:inline-block;white-space:pre;will-change:transform,opacity,filter}
+  .accent{height:3px;margin:3.5cqh auto 0;width:min(58%,420px);border-radius:3px;transform:scaleX(0);transform-origin:50% 50%;
+    background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent)}
+
+  /* transport */
+  .bar{display:flex;align-items:center;gap:14px;width:min(96vw, 980px);
+    background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:11px 16px}
+  .play{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:none;color:var(--txt);
+    display:grid;place-items:center;font-size:14px;cursor:pointer}
+  .play:hover{border-color:var(--gold);color:var(--gold)}
+  .scrub{flex:1;appearance:none;height:6px;border-radius:999px;outline:none;
+    background:linear-gradient(90deg,var(--gold) var(--p,18%),var(--elevated) var(--p,18%))}
+  .scrub::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);border:2px solid var(--bg);cursor:pointer}
+  .tc{font-size:12px;color:var(--muted);min-width:104px;text-align:right;font-variant-numeric:tabular-nums}
+  .seed{font-size:11px;color:var(--faint);max-width:min(96vw,980px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seed b{color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="stage" id="stage" data-aspect="16:9">
+    <div class="tag">ENGINE · <b id="lookName">Aurum</b> · transparent</div>
+    <div class="scene">
+      <div class="title" id="title"></div>
+      <div class="accent" id="accent"></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="play" id="play" title="Play (Space)">▶</button>
+    <input type="range" class="scrub" id="scrub" min="0" max="1000" value="180" />
+    <span class="tc" id="tc">0.00s / 0.00s</span>
+  </div>
+  <div class="seed"><b>seed</b> <span id="seedTxt">—</span></div>
+
+<script type="module">
+  import { DEFAULT_STATE, duration, decodeSeed, encodeSeed, variantFromSeed, clamp } from "./engine.mjs";
+  import { createDomRenderer } from "./dom-renderer.mjs";
+
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+
+  // build state: ?seed → decode · ?v=<n> → variant · then ?line/?aspect overrides
+  let state = params.has("seed") ? decodeSeed(params.get("seed"))
+            : params.has("v")    ? variantFromSeed(parseInt(params.get("v"), 10) || 0, params.get("line") || undefined)
+            : { ...DEFAULT_STATE };
+  if (params.has("line"))   state.line = params.get("line");
+  if (params.has("aspect")) state.aspect = params.get("aspect");
+
+  const renderer = createDomRenderer($("title"), $("accent"));
+  let t = params.has("t") ? clamp(parseFloat(params.get("t")) || 0, 0, 1) : 0.18;
+  let playing = false, raf = 0, last = 0;
+
+  function draw() {
+    $("stage").dataset.aspect = state.aspect;
+    const f = renderer.render(state, t);
+    $("scrub").value = Math.round(t * 1000);
+    $("scrub").style.setProperty("--p", (t * 100).toFixed(1) + "%");
+    $("tc").textContent = f.timeSec.toFixed(2) + "s / " + f.dur.toFixed(2) + "s";
+    $("seedTxt").textContent = encodeSeed(state);
+  }
+  function stop(){ playing = false; cancelAnimationFrame(raf); $("play").textContent = "▶"; }
+  function play(){
+    if (playing) return stop();
+    playing = true; $("play").textContent = "❚❚";
+    if (t >= 0.999) t = 0;
+    last = performance.now();
+    const step = ts => {
+      if (!playing) return;
+      t = clamp(t + (ts - last) / 1000 / duration(state), 0, 1); last = ts; draw();
+      if (t >= 1) return stop();
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+  $("scrub").addEventListener("input", e => { stop(); t = +e.target.value / 1000; draw(); });
+  $("play").addEventListener("click", play);
+  addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); play(); } });
+
+  document.fonts && document.fonts.ready ? document.fonts.ready.then(draw) : draw();
+  window.__ready = true;
+</script>
+</body>
+</html>
