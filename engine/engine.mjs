@@ -40,6 +40,40 @@ export const OUT = {
   maskDown: p => ({ clip: 1 - p }),
 };
 
+/* ---- Effects registry: schema-driven, deterministic, tier-aware ----
+   Each effect declares `params` (→ auto-generated controls) and is either:
+   - kind:"animator" → frame(tok,i,timeSec,params) mutates token deltas (pure, in-engine)
+   - kind:"style"    → style(params) returns CSS for the DOM renderer (Tier A); a future
+                       WebGL renderer implements the same id its own way.                */
+export const EFFECTS = {
+  glow: { id: "glow", name: "Glow", tier: "dom", kind: "style",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 40, step: 1, default: 16, suffix: "px" },
+              { key: "color", label: "Color", type: "color", default: "#D4A574" } ],
+    style: p => ({ textShadow: `0 0 ${p.amount}px ${p.color}, 0 0 ${p.amount * 2.2}px ${p.color}` }) },
+  drift: { id: "drift", name: "Drift", tier: "dom", kind: "animator",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 0.4, step: 0.01, default: 0.1, suffix: "em" },
+              { key: "speed", label: "Speed", type: "range", min: 0.1, max: 3, step: 0.1, default: 0.8 } ],
+    frame: (tok, i, ts, p) => { const ph = i * 0.7, w = ts * p.speed * Math.PI * 2;
+      tok.ty += Math.sin(w + ph) * p.amount; tok.tx += Math.cos(w * 0.8 + ph) * p.amount * 0.6; } },
+  shake: { id: "shake", name: "Shake", tier: "dom", kind: "animator",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 0.3, step: 0.01, default: 0.07, suffix: "em" },
+              { key: "speed", label: "Speed", type: "range", min: 1, max: 30, step: 1, default: 16 } ],
+    frame: (tok, i, ts, p) => { const r = n => { const x = Math.sin(ts * p.speed + i * 13.13 + n * 7.7) * 43758.5453; return (x - Math.floor(x)) * 2 - 1; };
+      tok.tx += r(1) * p.amount; tok.ty += r(2) * p.amount; } },
+};
+export const EFFECT_LIST = Object.keys(EFFECTS).map(k => ({ id: k, name: EFFECTS[k].name, kind: EFFECTS[k].kind, tier: EFFECTS[k].tier }));
+
+/* compose active animator effects into the frame (deterministic from timeSec) */
+export function applyAnimators(tokens, effects, timeSec) {
+  if (!effects) return;
+  for (const fx of effects) {
+    if (!fx || !fx.on) continue;
+    const def = EFFECTS[fx.id];
+    if (!def || def.kind !== "animator" || !def.frame) continue;
+    for (let i = 0; i < tokens.length; i++) { const tk = tokens[i]; if (tk.isSpace) continue; def.frame(tk, i, timeSec, fx.params); }
+  }
+}
+
 /* ---- Pillar 4: resolution-independent stage ---- */
 export const ASPECTS = { "16:9": [1920, 1080], "9:16": [1080, 1920], "1:1": [1080, 1080] };
 
@@ -114,6 +148,7 @@ export function sampleFrame(state, t) {
     return { text: tok.text, isSpace: false, tx, ty, sc, o, blur, clip };
   });
 
+  applyAnimators(tokens, s.effects, timeSec);
   return { dur: D, timeSec, tokens, accent: s.accent ? (N ? entranceSum / N : 0) : 0 };
 }
 

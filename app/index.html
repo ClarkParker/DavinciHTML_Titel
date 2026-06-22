@@ -146,6 +146,22 @@
   .ethumb svg{display:block;width:100%;height:24px}
   .ethumb .elabel{font-size:8px;color:var(--muted);text-align:center;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ethumb.on .elabel{color:var(--gold)}
+  /* effects stack (schema-driven) */
+  .fxadd{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+  .fxchip{font-size:11px;color:var(--gold);border:1px dashed var(--line);border-radius:7px;padding:4px 8px}
+  .fxchip:hover{border-color:var(--gold);background:rgba(212,165,116,.08)}
+  .fxcard{border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:8px;background:var(--surface)}
+  .fxcard.off{opacity:.5}
+  .fxhead{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+  .fxtog{font-size:11px;color:var(--gold)}
+  .fxname{font-weight:600;font-size:12.5px;flex:1}
+  .fxtier{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:1px 5px}
+  .fxdel{color:var(--faint);font-size:12px}.fxdel:hover{color:#ff9ec4}
+  .fxfield{margin-bottom:8px}.fxfield:last-child{margin-bottom:0}
+  .fxfield label{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .fxfield label b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+  .fxfield input[type=range]{width:100%;accent-color:var(--gold)}
+  .fxsw{display:flex;gap:6px}
 
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
     border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
@@ -237,6 +253,10 @@
         <div class="field"><label>Accent line <b id="accentV">On</b></label>
           <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
       </div>
+      <div class="cgroup"><h4>Effects</h4>
+        <div class="fxadd" id="fxAdd"></div>
+        <div class="fxstack" id="fxStack"></div>
+      </div>
     </aside>
   </div>
 </div>
@@ -287,6 +307,40 @@ const OUT = {
   riseOut:  p => ({ o: 1 - p, ty: -p * 0.45 }),
   maskDown: p => ({ clip: 1 - p }),
 };
+
+/* ---- Effects registry: schema-driven, deterministic, tier-aware ----
+   Each effect declares `params` (→ auto-generated controls) and is either:
+   - kind:"animator" → frame(tok,i,timeSec,params) mutates token deltas (pure, in-engine)
+   - kind:"style"    → style(params) returns CSS for the DOM renderer (Tier A); a future
+                       WebGL renderer implements the same id its own way.                */
+const EFFECTS = {
+  glow: { id: "glow", name: "Glow", tier: "dom", kind: "style",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 40, step: 1, default: 16, suffix: "px" },
+              { key: "color", label: "Color", type: "color", default: "#D4A574" } ],
+    style: p => ({ textShadow: `0 0 ${p.amount}px ${p.color}, 0 0 ${p.amount * 2.2}px ${p.color}` }) },
+  drift: { id: "drift", name: "Drift", tier: "dom", kind: "animator",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 0.4, step: 0.01, default: 0.1, suffix: "em" },
+              { key: "speed", label: "Speed", type: "range", min: 0.1, max: 3, step: 0.1, default: 0.8 } ],
+    frame: (tok, i, ts, p) => { const ph = i * 0.7, w = ts * p.speed * Math.PI * 2;
+      tok.ty += Math.sin(w + ph) * p.amount; tok.tx += Math.cos(w * 0.8 + ph) * p.amount * 0.6; } },
+  shake: { id: "shake", name: "Shake", tier: "dom", kind: "animator",
+    params: [ { key: "amount", label: "Amount", type: "range", min: 0, max: 0.3, step: 0.01, default: 0.07, suffix: "em" },
+              { key: "speed", label: "Speed", type: "range", min: 1, max: 30, step: 1, default: 16 } ],
+    frame: (tok, i, ts, p) => { const r = n => { const x = Math.sin(ts * p.speed + i * 13.13 + n * 7.7) * 43758.5453; return (x - Math.floor(x)) * 2 - 1; };
+      tok.tx += r(1) * p.amount; tok.ty += r(2) * p.amount; } },
+};
+const EFFECT_LIST = Object.keys(EFFECTS).map(k => ({ id: k, name: EFFECTS[k].name, kind: EFFECTS[k].kind, tier: EFFECTS[k].tier }));
+
+/* compose active animator effects into the frame (deterministic from timeSec) */
+function applyAnimators(tokens, effects, timeSec) {
+  if (!effects) return;
+  for (const fx of effects) {
+    if (!fx || !fx.on) continue;
+    const def = EFFECTS[fx.id];
+    if (!def || def.kind !== "animator" || !def.frame) continue;
+    for (let i = 0; i < tokens.length; i++) { const tk = tokens[i]; if (tk.isSpace) continue; def.frame(tk, i, timeSec, fx.params); }
+  }
+}
 
 /* ---- Pillar 4: resolution-independent stage ---- */
 const ASPECTS = { "16:9": [1920, 1080], "9:16": [1080, 1920], "1:1": [1080, 1080] };
@@ -362,6 +416,7 @@ function sampleFrame(state, t) {
     return { text: tok.text, isSpace: false, tx, ty, sc, o, blur, clip };
   });
 
+  applyAnimators(tokens, s.effects, timeSec);
   return { dur: D, timeSec, tokens, accent: s.accent ? (N ? entranceSum / N : 0) : 0 };
 }
 
@@ -438,9 +493,20 @@ function createDomRenderer(titleEl, accentEl) {
     titleEl.style.color = state.color;
   }
 
+  function applyEffects(state) {
+    titleEl.style.textShadow = "";                 // reset the style-effect props we own
+    const fx = state.effects; if (!fx) return;
+    for (const e of fx) {
+      if (!e || !e.on) continue;
+      const def = EFFECTS[e.id]; if (!def || def.kind !== "style" || !def.style) continue;
+      const css = def.style(e.params); for (const k in css) titleEl.style[k] = css[k];
+    }
+  }
+
   function render(state, t) {
     ensureTokens(state);
     applyLook(state);
+    applyEffects(state);
     const f = sampleFrame(state, t);
     for (let i = 0; i < f.tokens.length; i++) {
       const tk = f.tokens[i], el = tokEls[i];
@@ -464,6 +530,7 @@ function createDomRenderer(titleEl, accentEl) {
   const $ = id => document.getElementById(id);
   let state = { ...DEFAULT_STATE };
   let t = 0.5, playing = false, raf = 0, last = 0, loop = true, lockBeats = false;
+  let fxStack = [];   // active effect stack — persists across style/variant changes
   let genBase = 1, favorites = new Set();
   let fps = 30; const curDur = () => duration(state);
   const stageR = createDomRenderer($("title"), $("accent"));
@@ -516,7 +583,7 @@ function createDomRenderer(titleEl, accentEl) {
 
   function renderStage(){
     $("stage").dataset.aspect = state.aspect;
-    const f = stageR.render(state, t);
+    const f = stageR.render({ ...state, effects: fxStack }, t);
     $("tc").innerHTML = f.timeSec.toFixed(2)+"<small>/"+f.dur.toFixed(2)+"s</small>";
     $("tframe").textContent = "f"+Math.round(f.timeSec*fps);
     $("badge").textContent = ({"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect])+" · "+fps+"fps · alpha";
@@ -645,7 +712,41 @@ function createDomRenderer(titleEl, accentEl) {
     else if(e.key===","){ e.preventDefault(); stepFrame(-1); }
     else if(e.key==="."){ e.preventDefault(); stepFrame(1); } });
 
-  function init(){ buildCards(); draw(true); window.__ready=true; }
+  /* ---- Effects: add-chips from the registry + control cards generated from each
+     effect's param schema. Proves the "panel adapts to the effect" architecture. ---- */
+  const fmtVal=(v,pm)=>(Math.round(v*100)/100)+(pm.suffix?" "+pm.suffix:"");
+  function buildFxAdd(){ const host=$("fxAdd"); host.innerHTML="";
+    EFFECT_LIST.forEach(e=>{ const b=document.createElement("button"); b.className="fxchip"; b.textContent="＋ "+e.name;
+      b.title=e.kind+" · "+e.tier; b.addEventListener("click",()=>addEffect(e.id)); host.appendChild(b); }); }
+  function addEffect(id){ const def=EFFECTS[id]; if(!def) return; const params={}; def.params.forEach(p=>params[p.key]=p.default);
+    fxStack.push({ id, on:true, params }); renderFxStack(); renderStage(); toast(def.name+" hinzugefügt"); }
+  function renderFxStack(){
+    const host=$("fxStack"); host.innerHTML="";
+    fxStack.forEach((fx,idx)=>{
+      const def=EFFECTS[fx.id]; if(!def) return;
+      const card=document.createElement("div"); card.className="fxcard"+(fx.on?"":" off");
+      const head=document.createElement("div"); head.className="fxhead";
+      head.innerHTML=`<button class="fxtog">${fx.on?"●":"○"}</button><span class="fxname">${def.name}</span><span class="fxtier">${def.tier}</span><button class="fxdel">✕</button>`;
+      head.querySelector(".fxtog").addEventListener("click",()=>{ fx.on=!fx.on; renderFxStack(); renderStage(); });
+      head.querySelector(".fxdel").addEventListener("click",()=>{ fxStack.splice(idx,1); renderFxStack(); renderStage(); });
+      card.appendChild(head);
+      def.params.forEach(pm=>{
+        const f=document.createElement("div"); f.className="fxfield";
+        if(pm.type==="range"){
+          f.innerHTML=`<label>${pm.label} <b></b></label><input type="range" min="${pm.min}" max="${pm.max}" step="${pm.step}">`;
+          const inp=f.querySelector("input"), b=f.querySelector("b"); inp.value=fx.params[pm.key]; b.textContent=fmtVal(fx.params[pm.key],pm);
+          inp.addEventListener("input",e=>{ fx.params[pm.key]=+e.target.value; b.textContent=fmtVal(fx.params[pm.key],pm); renderStage(); });
+        } else if(pm.type==="color"){
+          f.innerHTML=`<label>${pm.label}</label><div class="fxsw"></div>`; const sw=f.querySelector(".fxsw");
+          ["#F4EFE6","#EBDAB0","#D4A574","#ff9ec4","#7cd4ff"].forEach(c=>{ const s=document.createElement("span"); s.className="sw"+(c===fx.params[pm.key]?" on":""); s.style.background=c;
+            s.addEventListener("click",()=>{ fx.params[pm.key]=c; [...sw.children].forEach(x=>x.classList.remove("on")); s.classList.add("on"); renderStage(); }); sw.appendChild(s); });
+        }
+        card.appendChild(f);
+      });
+      host.appendChild(card);
+    });
+  }
+  function init(){ buildFxAdd(); buildCards(); draw(true); window.__ready=true; }
   document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();
 </script>
 </body>

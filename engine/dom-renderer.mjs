@@ -4,7 +4,7 @@
  * the same call shape — render(state, t) — so the engine never changes when the
  * render target does. This is Pillar 2 (one field/frame → many renderers) in practice.
  */
-import { sampleFrame, tokenize } from "./engine.mjs";
+import { sampleFrame, tokenize, EFFECTS } from "./engine.mjs";
 
 export function createDomRenderer(titleEl, accentEl) {
   let signature = "";
@@ -40,9 +40,20 @@ export function createDomRenderer(titleEl, accentEl) {
     titleEl.style.color = state.color;
   }
 
+  function applyEffects(state) {
+    titleEl.style.textShadow = "";                 // reset the style-effect props we own
+    const fx = state.effects; if (!fx) return;
+    for (const e of fx) {
+      if (!e || !e.on) continue;
+      const def = EFFECTS[e.id]; if (!def || def.kind !== "style" || !def.style) continue;
+      const css = def.style(e.params); for (const k in css) titleEl.style[k] = css[k];
+    }
+  }
+
   function render(state, t) {
     ensureTokens(state);
     applyLook(state);
+    applyEffects(state);
     const f = sampleFrame(state, t);
     for (let i = 0; i < f.tokens.length; i++) {
       const tk = f.tokens[i], el = tokEls[i];
