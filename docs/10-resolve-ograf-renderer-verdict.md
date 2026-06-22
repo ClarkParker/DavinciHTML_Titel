@@ -1,66 +1,63 @@
-# Resolve 21 OGraf renderer — WebGL / fonts / goToTime verdict
+# Resolve 21 OGraf renderer — authoritative facts (Blackmagic's own dev docs)
 
-**Date:** 2026‑06‑15
-**Status:** Research verdict — **this CORRECTS the earlier over‑optimistic read** (the "CEF ⇒ WebGL is fine,
-not a gamble" framing). Honest conclusion below.
+**Source:** DaVinci Resolve 21 → bundled **Developer** folder, `OGraf HTML Templates/Documentation/*`
+(provided by the user from a real install). **This SUPERSEDES the earlier "unverified / risky" verdict
+in this file's history.** No more guessing — these are Blackmagic's own statements.
 
-## Verdict (short)
-A **WebGL / SDF / Three.js** OGraf graphic is **NOT guaranteed** to render inside Resolve 21, and **nobody has
-publicly confirmed it does.** Treat WebGL‑in‑Resolve as **unverified and risky.** **CSS + Canvas‑2D is the safe
-baseline.** The non‑realtime **`goToTime()`** seek path **is** live in Resolve.
+## The engine — confirmed
+- OGraf graphics render via **CEF (Chromium Embedded Framework)** — a full Chromium browser instance —
+  driven by **Fusion's `OGrafLoader`** node. (`README.txt`, `01-OGraf-Overview.md`)
+- → **WebGL2 / Canvas / CSS are present in the engine. WebGL is NOT disabled by spec.** My earlier
+  "probably off like CasparCG" was too pessimistic.
 
-## Evidence
-- **The OGraf spec does NOT require or guarantee WebGL.** It guarantees a browser engine running
-  HTML/JS/CSS/**Canvas (2D)**/Web‑Components. "WebGL/WebGL2/WebGPU/GPU" appear **nowhere** in the spec → a
-  renderer can be fully OGraf‑compliant with **no WebGL**. The manifest `renderRequirements.engine` example
-  ("CEF, version.min 139") signals the *expected engine class* (Chromium/CEF, which *can* do WebGL) but
-  guarantees nothing about GPU being enabled; `engine` is an open string a renderer may ignore.
-- **No WebGL capability field** in `renderCharacteristics` (only `resolution`, `frameRate`,
-  `accessToPublicInternet`). No spec‑level WebGL feature‑detection → use `canvas.getContext('webgl2')` yourself
-  and fall back.
-- **Blackmagic documents nothing technical** about the OGraf renderer's engine/WebGL. (Their What's New page +
-  the New Features Guide PDF are egress‑blocked here — 403 — so even the primary source most likely to hold
-  detail was not readable; it should be checked in a browser / the in‑app Developer docs.)
-- **No community report** of anyone loading a WebGL/Three.js OGraf graphic into Resolve 21 (success or fail).
-- **Strong negative analogy — CasparCG** (same CEF/Chromium broadcast‑HTML renderer class): testers report
-  WebGL "impossible to use" / unstable; CasparCG ships **GPU acceleration OFF by default** for stability
-  (issues #1177, #331, #1363). In these CEF hosts WebGL frequently **does not "just work."**
-- **Confirmed positive — `goToTime()`/non‑realtime works:** RedShark's beta coverage reports Fusion 21 added
-  "more accurate scrubbing, caching and handling of animation durations for OGraf graphics" and an
-  **OGrafLoader/Saver** node → Resolve actively drives OGraf over time.
-- **Resolve ships a WebGL‑capable Chromium** — its **Workflow Integration** plugins are **Electron 31.3.1 =
-  Chromium 126** (WebGL2/WebGPU by default). **Caveat:** that's the plugin‑UI path; **not confirmed to be the
-  same renderer** as the OGraf media‑clip import.
-- **Fonts/assets:** the OGraf model is **bundle everything** inside the package; external fetch is gated by the
-  optional `accessToPublicInternet`. → **Inline/bundle fonts; gate on `document.fonts.ready`; don't rely on CDN
-  fonts.**
+## The rendering model — the load-bearing constraint
+- Resolve runs OGraf **non-realtime ONLY**. The renderer advertises `supportsRealTime:false,
+  supportsNonRealTime:true`; the manifest **MUST** match.
+- Resolve calls **`goToTime(timestamp)` for every frame** during playback/export and **captures the CEF
+  output as image data**, composited over the timeline. It does **not** play animations live — it seeks
+  frame-by-frame (forward, backward, random access).
+- **Determinism is the #1 rule:** `goToTime(t)` must always produce identical output. Therefore:
+  - **NO `requestAnimationFrame` / `setTimeout` / `setInterval`** for animation
+  - **NO `.play()`** on CSS/GSAP timelines (seek only)
+  - NO `Math.random()` without seeding; NO async in `goToTime`
+  - All visual state computed from the timestamp alone → pure `_setFrame(seconds)` function.
 
-## Corrected strategy
-- **Tier A — guaranteed inside Resolve's OGraf renderer:** **CSS + Canvas‑2D** looks, `supportsNonRealTime:true`
-  + deterministic `goToTime()`, **bundled fonts**. This is what we can safely ship as live, re‑editable OGraf.
-- **Tier B — rich WebGL/SDF/3D looks (morph, metal, glass, particles):** deliver as **pre‑rendered alpha clips**
-  (render our WebGL engine headless → ProRes 4444 / WebM‑alpha / PNG‑seq) → imports into **every** Resolve
-  edition, **sidestepping Resolve's renderer entirely.** This becomes the **primary** bridge for rich looks
-  (not a fallback). The WebGL work is therefore **not wasted** — it powers the standalone web app *and* the
-  alpha‑clip export.
-- **Live WebGL‑in‑OGraf** stays an *optional* path, enabled **only if** the in‑Resolve probe (below) passes.
+## WebGL — the honest status
+- **Available:** full Chromium/CEF → `canvas.getContext('webgl2')` works.
+- **Usable IF deterministic:** WebGL must be drawn **synchronously inside `goToTime(t)`** (render-on-seek),
+  **not** via an rAF loop. A time-parametrized scene fits this perfectly: compute state from `t`, draw one
+  frame. The "no rAF" rule kills self-driving animation loops, **not** WebGL itself.
+- **Residual unknown (only a probe answers it):** whether in-page WebGL is hardware-accelerated or falls
+  back to SwiftShader (software), and per-frame perf. NB: macOS frame **capture** is GPU/Metal-accelerated
+  (IOSurface→image) — that's the capture, not proof of in-page WebGL HW-accel.
 
-## The one test that resolves all unknowns (needs a machine with Resolve 21)
-A minimal OGraf graphic that: `getContext('webgl2')` + clears/draws a triangle, loads a **bundled** web font,
-and animates via **`goToTime`** — dropped into Resolve 21. Answers WebGL availability, the engine/GPU question,
-and font handling at once.
+## Concrete Resolve specifics (all from the bundled docs)
+- **Platform:** macOS full (Metal GPU accel, Apple Silicon) · Windows full (CPU rendering) ·
+  **Linux/iOS NOT supported.**
+- **Limits:** **≤ 20 dynamic params**, **≤ 10 custom action buttons**; a color = 1 param (native Fusion
+  color picker via `gddType:"color-rrggbb"`/`-rrggbbaa`).
+- **Color mgmt:** RCM on → sRGB→linear handled automatically by OGrafLoader.
+- **Duration:** `v_bmd.duration` (seconds) = clip length; users can trim shorter, not extend.
+- **Web Component:** extends `HTMLElement`, **Shadow DOM** (`attachShadow({mode:"open"})`), **default export**,
+  do **NOT** call `customElements.define()`, implement **8 methods**: `load, dispose, playAction, stopAction,
+  updateAction, customAction, goToTime, setActionsSchedule`.
+- **Assets/fonts:** **bundle inside the package**; the template sets `accessToPublicInternet:{ideal:false}` →
+  do not rely on the internet (load bundled fonts, gate on `document.fonts.ready`).
+- **Install:** `Fusion/Templates/Edit/Titles/<Category>/`; package as `.ograf` (dotOgraf) or `.drfx`
+  (ZIP whose internal tree starts at `Edit/Titles/...`).
+- **Lifecycle:** `load(renderType:"non-realtime", renderCharacteristics)` → `playAction()` →
+  `goToTime({timestamp})` per frame → `updateAction({data})` on Inspector edit → `dispose()`.
+- **Manifest format:** see `Templates/Manifest-Template.ograf.json`; working refs in
+  `Examples/Breaking-News` and `Examples/Sport-Match-Result`; packager `Scripts/build-dotograf.sh` +
+  `Scripts/prepare-drfx.py`.
 
-## Sources
-- Spec: https://github.com/ebu/ograf/blob/main/v1/specification/docs/Specification.md ·
-  schema https://github.com/ebu/ograf/blob/main/v1/specification/json-schemas/graphics/schema.json ·
-  renderCharacteristics https://github.com/ebu/ograf/blob/main/v1/typescript-definitions/src/definitions/render.ts ·
-  issues #25 / #1 / #42
-- Resolve goToTime/OGrafLoader evidence: https://www.redsharknews.com/davinci-resolve-21-beta-3-features ·
-  https://www.redsharknews.com/davinci-resolve-21-beta-2-bug-fixes-fusion
-- CasparCG WebGL/GPU precedent: https://github.com/CasparCG/server/issues/1177 ·
-  https://github.com/CasparCG/Server/issues/331 · https://github.com/CasparCG/server/issues/1363
-- Resolve Chromium stack: https://releases.electronjs.org/release/v31.3.1 ·
-  https://resolvedevdoc.readthedocs.io/en/latest/readme_workflow.html
-- BMD (egress‑blocked / 403, not readable here): https://www.blackmagicdesign.com/products/davinciresolve/whatsnew ·
-  https://documents.blackmagicdesign.com/SupportNotes/DaVinci_Resolve_21_New_Features_Guide.pdf ·
-  forum https://forum.blackmagicdesign.com/viewtopic.php?f=42&t=234698
+## What this means for our build
+- **Resolve's OGraf model == deterministic, time-parametrized frame rendering** — *exactly* what our
+  morph/SDF engine already does (it computes visual state from a progress/time value). We simply drive
+  `_setFrame(seconds)` → compute progress from `seconds` → render (CSS / Canvas / WebGL) **synchronously**,
+  instead of from a rAF loop. **The WebGL work is reusable, not wasted.**
+- **Two delivery tiers, both valid:**
+  1. **Live OGraf title in Resolve** — CSS/Canvas is safe today; WebGL pending the in-Resolve probe (perf).
+  2. **Pre-rendered alpha clip** (render-to-frames) for the heaviest FX — guaranteed in every edition.
+- **One probe resolves the last unknown:** a minimal Resolve-ready OGraf title that does
+  `getContext('webgl2')`, draws per `goToTime`, and loads a **bundled** font → dropped into Resolve.
