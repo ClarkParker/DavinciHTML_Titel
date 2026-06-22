@@ -243,7 +243,7 @@
   const TL = new timelineModule.Timeline({
     id:"timeline", headerHeight:22, fillColor:"#16140F", headerFillColor:"#141210",
     labelsColor:"#A8A096", tickColor:"rgba(235,218,176,.30)", selectionColor:"rgba(212,165,116,.30)",
-    font:"10px ui-monospace, Menlo, monospace", snapEnabled:false, keyframesDraggable:false,
+    font:"10px ui-monospace, Menlo, monospace", snapEnabled:false, keyframesDraggable:true, groupsDraggable:false,
     timelineStyle:{ fillColor:"#EBDAB0", strokeColor:"#EBDAB0", width:2,
       capStyle:{ fillColor:"#EBDAB0", strokeColor:"#0E0D0B", width:12, height:10 } },
     rowsStyle:{ height:34, fillColor:"#1C1917", marginBottom:2,
@@ -254,10 +254,20 @@
   const phaseTimes = () => [0, state.inDur, state.inDur+state.hold, curDur()];
   function rebuildTimeline(){
     const p = phaseTimes(), end = p.length-1;
-    TL.setModel({ rows:[{ keyframesDraggable:false,
-      keyframes: p.map((s,i)=>({ val:s*1000, style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" } })) }] });
+    TL.setModel({ rows:[{ keyframesDraggable:true, groupsDraggable:false,
+      keyframes: p.map((s,i)=>({ val:s*1000, draggable:i!==0,
+        style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" } })) }] });
+  }
+  /* drag the In/Hold/Out keyframes on the timeline to retime (commit on release) */
+  function commitTiming(){
+    const m = TL.getModel(); if(!m||!m.rows||!m.rows[0]) return;
+    const ks = (m.rows[0].keyframes||[]).map(k=>k.val/1000).sort((a,b)=>a-b);
+    if(ks.length<4) return;
+    state.inDur=clamp(ks[1]-ks[0],0.2,2); state.hold=clamp(ks[2]-ks[1],0,3); state.outDur=clamp(ks[3]-ks[2],0.2,2);
+    syncControls(); rebuildTimeline(); renderStage(); TL.setTime(t*curDur()*1000);
   }
   TL.onTimeChanged(e=>{ if(e.source===timelineModule.TimelineEventSource.User){ stop(); t=clamp(e.val/1000/curDur(),0,1); renderStage(); } });
+  TL.onKeyframeChanged(commitTiming);
 
   function renderStage(){
     $("stage").dataset.aspect = state.aspect;
