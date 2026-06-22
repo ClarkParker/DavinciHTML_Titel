@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!-- Dev-only harness to render WebGL-Probe.js headless (NOT shipped in the .ograf package).
+     Usage: open with #t=<milliseconds> to seek, e.g. _harness.html#t=3000 -->
+<html>
+<head><meta charset="utf-8"><style>html,body{margin:0;background:#202225;width:1920px;height:1080px;overflow:hidden}</style></head>
+<body>
+<script type="module">
+  import Probe from "./WebGL-Probe.js";
+  customElements.define("webgl-probe", Probe);
+  const el = document.createElement("webgl-probe");
+  el.style.cssText = "position:absolute;inset:0;";
+  document.body.appendChild(el);
+
+  const params = new URLSearchParams(location.hash.slice(1));
+  const t = parseInt(params.get("t") || "0", 10);
+
+  (async () => {
+    await el.load({
+      data: {},
+      renderType: "non-realtime",
+      renderCharacteristics: { resolution: { width: 1920, height: 1080 }, frameRate: 30 }
+    });
+    await el.setActionsSchedule({ schedule: [
+      { timestamp: 0,     action: { type: "playAction", params: {} } },
+      { timestamp: 10000, action: { type: "stopAction",  params: {} } }
+    ]});
+    await el.playAction({});
+    await el.goToTime({ timestamp: t });
+    window.__ready = true;
+  })();
+</script>
+</body>
+</html>

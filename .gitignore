@@ -5,3 +5,6 @@ tools/morphtest.html
 tools/morphcompare.html
 tools/morphsdf.html
 tools/morphgl.html
+
+# probe QA screenshots (regenerable)
+ograf-probe/shots/

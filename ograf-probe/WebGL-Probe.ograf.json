@@ -1,0 +1,39 @@
+{
+  "$schema": "https://ograf.ebu.io/v1/specification/json-schemas/graphics/schema.json",
+  "id": "com.davincihtml.webgl-probe",
+  "version": "1.0.0",
+  "name": "WebGL Probe (Diagnostics)",
+  "description": "Self-diagnosing OGraf title for DaVinci Resolve. Renders a WebGL2 shader per goToTime() and prints, in the captured frame: WebGL2 availability, GPU-vs-software renderer (the SwiftShader question), bundled-font loading, and deterministic seek. Drop it on a title track and read the on-screen panel.",
+  "author": { "name": "DavinciHTML_Titel" },
+  "main": "WebGL-Probe.js",
+  "v_bmd": { "duration": 10 },
+  "stepCount": 1,
+  "supportsRealTime": false,
+  "supportsNonRealTime": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "label": {
+        "type": "string",
+        "title": "Label",
+        "default": "WEBGL PROBE"
+      },
+      "accentColor": {
+        "type": "string",
+        "title": "Accent Color",
+        "gddType": "color-rrggbb",
+        "pattern": "^#[0-9a-f]{6}$",
+        "default": "#00e0a4"
+      }
+    },
+    "required": ["label"]
+  },
+  "renderRequirements": [
+    {
+      "resolution": { "width": { "ideal": 1920 }, "height": { "ideal": 1080 } },
+      "frameRate": { "ideal": 30 },
+      "accessToPublicInternet": { "ideal": false }
+    }
+  ]
+}
