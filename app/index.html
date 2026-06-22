@@ -127,6 +127,24 @@
   .swatches{display:flex;gap:7px}
   .sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
   .sw.on{border-color:#fff}
+  /* visual pickers */
+  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .thumb{border:1px solid var(--line);border-radius:8px;overflow:hidden;cursor:pointer;background:var(--surface);transition:border-color .12s}
+  .thumb:hover{border-color:rgba(235,218,176,.5)}
+  .thumb.on{border-color:var(--gold)}
+  .thumb .ministage{height:38px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:radial-gradient(200px 70px at 50% -30%,#1b1610,transparent 70%),var(--bg)}
+  .thumb .minititle{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:-.01em;line-height:1;white-space:nowrap}
+  .thumb .minititle .tok{display:inline-block;white-space:pre}
+  .thumb .tlabel{font-size:8.5px;color:var(--muted);text-align:center;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .thumb.on .tlabel{color:var(--gold)}
+  .ethumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .ethumb{border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--surface);padding:4px 3px 2px;transition:border-color .12s}
+  .ethumb:hover{border-color:rgba(235,218,176,.5)}
+  .ethumb.on{border-color:var(--gold)}
+  .ethumb svg{display:block;width:100%;height:24px}
+  .ethumb .elabel{font-size:8px;color:var(--muted);text-align:center;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ethumb.on .elabel{color:var(--gold)}
 
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
     border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
@@ -190,21 +208,9 @@
 
     <aside class="controls">
       <div class="cgroup"><h4>Animation</h4>
-        <div class="field"><label>In</label>
-          <select id="animIn">
-            <option value="maskRise">Mask Rise</option><option value="rise">Rise</option>
-            <option value="fade">Fade</option><option value="pop">Pop</option>
-            <option value="slide">Slide</option><option value="blurIn">Blur In</option></select></div>
-        <div class="field"><label>Out</label>
-          <select id="animOut">
-            <option value="fadeSink">Fade Sink</option><option value="fade">Fade</option>
-            <option value="riseOut">Rise</option><option value="maskDown">Mask Down</option></select></div>
-        <div class="field"><label>Easing</label>
-          <select id="ease">
-            <option value="outExpo">Expo</option><option value="outCubic">Cubic</option>
-            <option value="outQuint">Quint</option><option value="inOutCubic">Smooth</option>
-            <option value="outBack">Back</option><option value="outElastic">Elastic</option>
-            <option value="outBounce">Bounce</option><option value="linear">Linear</option></select></div>
+        <div class="field"><label>In <span style="color:var(--faint);font-weight:400">hover = play</span></label><div class="thumbs" id="animInPick"></div></div>
+        <div class="field"><label>Out</label><div class="thumbs" id="animOutPick"></div></div>
+        <div class="field"><label>Easing</label><div class="ethumbs" id="easePick"></div></div>
       </div>
       <div class="cgroup"><h4>Stagger</h4>
         <div class="field"><label>Unit</label>
@@ -529,7 +535,11 @@ function createDomRenderer(titleEl, accentEl) {
       card.innerHTML = `<div class="vstage"><div class="vtitle"></div></div>
         <div class="vmeta"><span class="vname">Seed ${k}</span>
         <button class="fav ${favorites.has(k)?'on':''}">${favorites.has(k)?'♥':'♡'}</button></div>`;
-      createDomRenderer(card.querySelector(".vtitle"), null).render(v, 0.5);
+      const mini = createDomRenderer(card.querySelector(".vtitle"), null); mini.render(v, 0.5);
+      let mraf2 = 0;
+      card.addEventListener("mouseenter",()=>{ const dur=duration(v), t0=performance.now();
+        const loop=ts=>{ mini.render(v, ((ts-t0)/1000/dur)%1); mraf2=requestAnimationFrame(loop); }; mraf2=requestAnimationFrame(loop); });
+      card.addEventListener("mouseleave",()=>{ cancelAnimationFrame(mraf2); mini.render(v, 0.5); });
       card.addEventListener("click", e=>{
         if(e.target.closest(".fav")){ favorites.has(k)?favorites.delete(k):favorites.add(k); buildCards(); return; }
         state = lockBeats ? { ...v, inDur:state.inDur, hold:state.hold, outDur:state.outDur } : { ...v };
@@ -542,7 +552,7 @@ function createDomRenderer(titleEl, accentEl) {
 
   function setSeg(id,v){ [...$(id).children].forEach(b=>b.classList.toggle("on", b.dataset.v===String(v))); }
   function syncControls(){
-    $("animIn").value=state.animIn; $("animOut").value=state.animOut; $("ease").value=state.ease;
+    markPick("animInPick",state.animIn); markPick("animOutPick",state.animOut); markPick("easePick",state.ease);
     setSeg("unit",state.unit); setSeg("order",state.order); setSeg("aspect",state.aspect);
     setSeg("accentToggle", state.accent?"1":"0"); $("accentV").textContent=state.accent?"On":"Off";
     $("stagger").value=state.stagger; $("staggerV").textContent=(+state.stagger).toFixed(2);
@@ -562,9 +572,42 @@ function createDomRenderer(titleEl, accentEl) {
 
   $("line").addEventListener("input",e=>{ state.line=e.target.value; draw(); buildCards(); });
   seg("aspect",v=>{ state.aspect=v; draw(); });
-  $("animIn").addEventListener("change",e=>{ state.animIn=e.target.value; draw(); });
-  $("animOut").addEventListener("change",e=>{ state.animOut=e.target.value; draw(); });
-  $("ease").addEventListener("change",e=>{ state.ease=e.target.value; draw(); });
+  /* visual pickers — In/Out as motion thumbnails (hover to play), Easing as curves */
+  const IN_OPTS=[["maskRise","Mask Rise"],["rise","Rise"],["fade","Fade"],["pop","Pop"],["slide","Slide"],["blurIn","Blur In"]];
+  const OUT_OPTS=[["fadeSink","Fade Sink"],["fade","Fade"],["riseOut","Rise"],["maskDown","Mask Down"]];
+  const EASE_OPTS=[["outExpo","Expo"],["outCubic","Cubic"],["outQuint","Quint"],["inOutCubic","Smooth"],["outBack","Back"],["outElastic","Elastic"],["outBounce","Bounce"],["linear","Linear"]];
+  const SAMPLE="Type";
+  const markPick=(hostId,val)=>[...$(hostId).children].forEach(c=>c.classList.toggle("on", c.dataset.v===val));
+  function buildAnimPicker(hostId,key,opts,fixed){
+    const host=$(hostId); host.innerHTML="";
+    opts.forEach(([val,label])=>{
+      const cell=document.createElement("div"); cell.className="thumb"; cell.dataset.v=val;
+      cell.innerHTML=`<div class="ministage"><div class="minititle"></div></div><div class="tlabel">${label}</div>`;
+      const sv={ ...DEFAULT_STATE, line:SAMPLE, unit:"char", stagger:0.7, inDur:0.7, hold:0.3, outDur:0.6, accent:false, ...fixed, [key]:val };
+      const r=createDomRenderer(cell.querySelector(".minititle"),null); r.render(sv,0.5);
+      let mraf=0;
+      cell.addEventListener("mouseenter",()=>{ const dur=duration(sv),t0=performance.now();
+        const loop=ts=>{ r.render(sv,((ts-t0)/1000/dur)%1); mraf=requestAnimationFrame(loop); }; mraf=requestAnimationFrame(loop); });
+      cell.addEventListener("mouseleave",()=>{ cancelAnimationFrame(mraf); r.render(sv,0.5); });
+      cell.addEventListener("click",()=>{ state[key]=val; markPick(hostId,val); draw(); });
+      host.appendChild(cell);
+    });
+  }
+  function buildEasePicker(){
+    const host=$("easePick"); host.innerHTML=""; const W=60,H=24,pad=3;
+    EASE_OPTS.forEach(([val,label])=>{
+      const fn=EASE[val]||EASE.outExpo; let d="";
+      for(let i=0;i<=22;i++){ const x=i/22,y=fn(x); d+=(i?"L":"M")+(pad+x*(W-2*pad)).toFixed(1)+","+(H-pad-clamp(y,-0.35,1.35)*(H-2*pad)).toFixed(1); }
+      const cell=document.createElement("div"); cell.className="ethumb"; cell.dataset.v=val;
+      cell.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="rgba(255,255,255,.08)"/><path d="${d}" fill="none" stroke="#D4A574" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><div class="elabel">${label}</div>`;
+      cell.addEventListener("click",()=>{ state.ease=val; markPick("easePick",val); draw(); });
+      host.appendChild(cell);
+    });
+  }
+  buildAnimPicker("animInPick","animIn",IN_OPTS,{animOut:"fade"});
+  buildAnimPicker("animOutPick","animOut",OUT_OPTS,{animIn:"fade"});
+  buildEasePicker();
+  markPick("animInPick",state.animIn); markPick("animOutPick",state.animOut); markPick("easePick",state.ease);
   seg("unit",v=>{ state.unit=v; draw(); });
   seg("order",v=>{ state.order=v; draw(); });
   seg("accentToggle",v=>{ state.accent=v==="1"; $("accentV").textContent=state.accent?"On":"Off"; draw(); });
