@@ -173,6 +173,7 @@
             <button class="tbtn" id="kfPrev" title="Vorheriger Keyframe">◆‹</button>
             <button class="tbtn" id="kfNext" title="Nächster Keyframe">›◆</button>
             <button class="tbtn on" id="loop" title="Loop">⟲</button>
+            <button class="tbtn" id="lock" title="Beats sperren – Timing bleibt beim Stylewechsel erhalten">🔓</button>
           </div>
           <div class="treadout">
             <label class="tset">fps <select id="fps">
@@ -445,7 +446,7 @@ function createDomRenderer(titleEl, accentEl) {
 
   const $ = id => document.getElementById(id);
   let state = { ...DEFAULT_STATE };
-  let t = 0.5, playing = false, raf = 0, last = 0, loop = true;
+  let t = 0.5, playing = false, raf = 0, last = 0, loop = true, lockBeats = false;
   let genBase = 1, favorites = new Set();
   let fps = 30; const curDur = () => duration(state);
   const stageR = createDomRenderer($("title"), $("accent"));
@@ -470,7 +471,7 @@ function createDomRenderer(titleEl, accentEl) {
         val:v,
         draggable:i!==0, selectable:i!==0,                       // pin the start keyframe at 0
         min:i===0?0:ms[i-1]+50, max:i===end?60000:ms[i+1]-50,   // can't cross its neighbours
-        style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" }
+        style:{ fillColor:(i===0||i===end)?"#A8A096":(lockBeats?"#EBDAB0":"#D4A574") }
       }))
     }] });
   }
@@ -492,6 +493,9 @@ function createDomRenderer(titleEl, accentEl) {
     state.hold=clamp(tgt-state.inDur-state.outDur,0,10); syncControls(); draw(true); }
   $("fps").addEventListener("change",e=>{ fps=+e.target.value; renderStage(); });
   $("frames").addEventListener("change",e=>setTotalFrames(e.target.value));
+  $("lock").addEventListener("click",()=>{ lockBeats=!lockBeats; $("lock").classList.toggle("on",lockBeats);
+    $("lock").textContent=lockBeats?"🔒":"🔓"; rebuildTimeline();
+    toast(lockBeats?"Beats gesperrt · Timing bleibt beim Stylewechsel":"Beats entsperrt"); });
 
   function renderStage(){
     $("stage").dataset.aspect = state.aspect;
@@ -528,7 +532,8 @@ function createDomRenderer(titleEl, accentEl) {
       createDomRenderer(card.querySelector(".vtitle"), null).render(v, 0.5);
       card.addEventListener("click", e=>{
         if(e.target.closest(".fav")){ favorites.has(k)?favorites.delete(k):favorites.add(k); buildCards(); return; }
-        state = { ...v }; syncControls(); draw(true); markActive(i);
+        state = lockBeats ? { ...v, inDur:state.inDur, hold:state.hold, outDur:state.outDur } : { ...v };
+        syncControls(); draw(true); markActive(i);
       });
       host.appendChild(card);
     }
