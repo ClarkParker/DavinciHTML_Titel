@@ -108,6 +108,9 @@
   .tc small{color:var(--faint)}
   .tframe{font-family:var(--mono);font-size:11px;color:var(--faint)}
   .badge{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 9px;white-space:nowrap}
+  .tset{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .tset select,.tset input{background:var(--elevated);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:11px;padding:4px 6px;width:auto}
+  .tset input{width:54px;text-align:right}
   .tl-host{position:relative;height:92px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
   #timeline{position:absolute;inset:0;width:100%;height:100%}
 
@@ -172,6 +175,9 @@
             <button class="tbtn on" id="loop" title="Loop">⟲</button>
           </div>
           <div class="treadout">
+            <label class="tset">fps <select id="fps">
+              <option>24</option><option>25</option><option selected>30</option><option>50</option><option>60</option></select></label>
+            <label class="tset">frames <input id="frames" type="number" min="1" max="36000" step="1" value="87"></label>
             <span class="tc" id="tc">0.00<small>/0.00s</small></span>
             <span class="tframe" id="tframe">f0</span>
             <span class="badge" id="badge">1920×1080 · 30fps · alpha</span>
@@ -208,7 +214,7 @@
       </div>
       <div class="cgroup"><h4>Timing</h4>
         <div class="field"><label>In <b id="inV">0.80s</b></label><input type="range" id="inDur" min="0.2" max="2" step="0.05" value="0.8"></div>
-        <div class="field"><label>Hold <b id="holdV">1.4s</b></label><input type="range" id="hold" min="0" max="3" step="0.1" value="1.4"></div>
+        <div class="field"><label>Hold <b id="holdV">1.4s</b></label><input type="range" id="hold" min="0" max="10" step="0.1" value="1.4"></div>
         <div class="field"><label>Out <b id="outV">0.70s</b></label><input type="range" id="outDur" min="0.2" max="2" step="0.05" value="0.7"></div>
       </div>
       <div class="cgroup"><h4>Type</h4>
@@ -236,14 +242,14 @@
   let state = { ...DEFAULT_STATE };
   let t = 0.5, playing = false, raf = 0, last = 0, loop = true;
   let genBase = 1, favorites = new Set();
-  const fps = 30, curDur = () => duration(state);
+  let fps = 30; const curDur = () => duration(state);
   const stageR = createDomRenderer($("title"), $("accent"));
 
   /* ---- professional timeline: animation-timeline-js (MIT), themed + wired to the engine ---- */
   const TL = new timelineModule.Timeline({
     id:"timeline", headerHeight:22, fillColor:"#16140F", headerFillColor:"#141210",
     labelsColor:"#A8A096", tickColor:"rgba(235,218,176,.30)", selectionColor:"rgba(212,165,116,.30)",
-    font:"10px ui-monospace, Menlo, monospace", snapEnabled:false, keyframesDraggable:true, groupsDraggable:false,
+    font:"10px ui-monospace, Menlo, monospace", snapEnabled:false,
     timelineStyle:{ fillColor:"#EBDAB0", strokeColor:"#EBDAB0", width:2,
       capStyle:{ fillColor:"#EBDAB0", strokeColor:"#0E0D0B", width:12, height:10 } },
     rowsStyle:{ height:34, fillColor:"#1C1917", marginBottom:2,
@@ -253,28 +259,42 @@
   TL._formatUnitsText = ms => (ms/1000).toFixed(Math.abs(ms%1000)<1?0:1)+"s";
   const phaseTimes = () => [0, state.inDur, state.inDur+state.hold, curDur()];
   function rebuildTimeline(){
-    const p = phaseTimes(), end = p.length-1;
-    TL.setModel({ rows:[{ keyframesDraggable:true, groupsDraggable:false,
-      keyframes: p.map((s,i)=>({ val:s*1000, draggable:i!==0,
-        style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" } })) }] });
+    const ms = phaseTimes().map(s=>s*1000), end = ms.length-1;
+    TL.setModel({ rows:[{
+      keyframes: ms.map((v,i)=>({
+        val:v,
+        draggable:i!==0, selectable:i!==0,                       // pin the start keyframe at 0
+        min:i===0?0:ms[i-1]+50, max:i===end?60000:ms[i+1]-50,   // can't cross its neighbours
+        style:{ fillColor:(i===0||i===end)?"#A8A096":"#D4A574" }
+      }))
+    }] });
   }
-  /* drag the In/Hold/Out keyframes on the timeline to retime (commit on release) */
-  function commitTiming(){
+  /* drag keyframes → engine timing. Read the model the library mutates live; do NOT
+     setModel() mid-drag (that aborts the drag → "can't move"). Normalise on release. */
+  function retimeFromTimeline(){
     const m = TL.getModel(); if(!m||!m.rows||!m.rows[0]) return;
     const ks = (m.rows[0].keyframes||[]).map(k=>k.val/1000).sort((a,b)=>a-b);
     if(ks.length<4) return;
-    state.inDur=clamp(ks[1]-ks[0],0.2,2); state.hold=clamp(ks[2]-ks[1],0,3); state.outDur=clamp(ks[3]-ks[2],0.2,2);
-    syncControls(); rebuildTimeline(); renderStage(); TL.setTime(t*curDur()*1000);
+    state.inDur=clamp(ks[1]-ks[0],0.2,2); state.hold=clamp(ks[2]-ks[1],0,10); state.outDur=clamp(ks[3]-ks[2],0.2,2);
+    syncControls(); renderStage();
   }
   TL.onTimeChanged(e=>{ if(e.source===timelineModule.TimelineEventSource.User){ stop(); t=clamp(e.val/1000/curDur(),0,1); renderStage(); } });
-  TL.onKeyframeChanged(commitTiming);
+  TL.onDrag(retimeFromTimeline);
+  TL.onDragFinished(()=>{ retimeFromTimeline(); rebuildTimeline(); TL.setTime(t*curDur()*1000); });
+  window.timeline = TL;  // QA/debug handle
+  /* fps + total length (frames) — project settings under the timeline */
+  function setTotalFrames(n){ n=clamp(Math.round(+n)||1,1,36000); const tgt=n/fps;
+    state.hold=clamp(tgt-state.inDur-state.outDur,0,10); syncControls(); draw(true); }
+  $("fps").addEventListener("change",e=>{ fps=+e.target.value; renderStage(); });
+  $("frames").addEventListener("change",e=>setTotalFrames(e.target.value));
 
   function renderStage(){
     $("stage").dataset.aspect = state.aspect;
     const f = stageR.render(state, t);
     $("tc").innerHTML = f.timeSec.toFixed(2)+"<small>/"+f.dur.toFixed(2)+"s</small>";
     $("tframe").textContent = "f"+Math.round(f.timeSec*fps);
-    $("badge").textContent = ({"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect])+" · 30fps · alpha";
+    $("badge").textContent = ({"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect])+" · "+fps+"fps · alpha";
+    if(document.activeElement!==$("frames")) $("frames").value = Math.max(1,Math.round(f.dur*fps));
   }
   function draw(rebuild){ if(rebuild) rebuildTimeline(); renderStage(); TL.setTime(t*curDur()*1000); }
   function stop(){ playing=false; cancelAnimationFrame(raf); $("play").textContent="▶"; $("play").classList.remove("on"); }
