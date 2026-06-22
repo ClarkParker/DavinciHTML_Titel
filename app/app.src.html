@@ -20,6 +20,13 @@
   button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   input,select{font-family:var(--sans);color:var(--txt)}
   ::selection{background:var(--gold);color:#0E0D0B}
+  /* themed scrollbars */
+  *{scrollbar-width:thin;scrollbar-color:rgba(212,165,116,.4) transparent}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(212,165,116,.30);border-radius:999px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(212,165,116,.55);background-clip:content-box}
+  ::-webkit-scrollbar-corner{background:transparent}
 
   /* Stable shell: never grows "wild" — fixed side rails, the stage scales WITHIN
      its box (container units), everything else scrolls. Works small (DaVinci panel)
