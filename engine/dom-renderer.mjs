@@ -8,18 +8,29 @@ import { sampleFrame, tokenize } from "./engine.mjs";
 
 export function createDomRenderer(titleEl, accentEl) {
   let signature = "";
+  let tokEls = [];
 
   function ensureTokens(state) {
     const sig = state.line + "|" + state.unit;
     if (sig === signature) return;
     signature = sig;
     titleEl.innerHTML = "";
+    tokEls = [];
+    let group = null;
     tokenize(state.line, state.unit).forEach(tok => {
       const sp = document.createElement("span");
       sp.className = "tok";
       sp.textContent = tok.text === " " ? " " : tok.text;
-      if (tok.isSpace) sp.dataset.space = "1";
-      titleEl.appendChild(sp);
+      if (tok.isSpace) {
+        sp.dataset.space = "1";
+        group = null;                 // a space ends the word → line may wrap here (only)
+        titleEl.appendChild(sp);
+      } else {
+        // keep a word's units in one nowrap wrapper so it never breaks mid-word
+        if (!group) { group = document.createElement("span"); group.className = "word"; titleEl.appendChild(group); }
+        group.appendChild(sp);
+      }
+      tokEls.push(sp);
     });
   }
 
@@ -33,9 +44,8 @@ export function createDomRenderer(titleEl, accentEl) {
     ensureTokens(state);
     applyLook(state);
     const f = sampleFrame(state, t);
-    const spans = titleEl.children;
     for (let i = 0; i < f.tokens.length; i++) {
-      const tk = f.tokens[i], el = spans[i];
+      const tk = f.tokens[i], el = tokEls[i];
       if (!el) continue;
       el.style.transform = `translate(${tk.tx}em, ${tk.ty}em) scale(${tk.sc})`;
       el.style.opacity = tk.o;
@@ -46,5 +56,5 @@ export function createDomRenderer(titleEl, accentEl) {
     return f;
   }
 
-  return { render, invalidate: () => { signature = ""; } };
+  return { render, invalidate: () => { signature = ""; tokEls = []; } };
 }
