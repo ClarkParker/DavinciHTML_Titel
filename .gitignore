@@ -11,3 +11,6 @@ ograf-probe/shots/
 
 # engine QA screenshots (regenerable)
 engine/shots/
+
+# app QA screenshots (regenerable)
+app/shots/

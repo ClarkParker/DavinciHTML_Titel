@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kinetic Typography Studio</title>
+<style>
+  :root{
+    --bg:#0E0D0B; --surface:#16140F; --elevated:#1C1917; --panel:#141210;
+    --hair:rgba(255,255,255,.07); --line:rgba(235,218,176,.13);
+    --txt:#F4EFE6; --muted:#A8A096; --faint:#6E665C; --gold:#D4A574; --gold2:#EBDAB0;
+    --disp:"Bricolage Grotesque","Georgia",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  input,select{font-family:var(--sans);color:var(--txt)}
+  ::selection{background:var(--gold);color:#0E0D0B}
+  .app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+
+  /* ---------- top bar ---------- */
+  .top{display:flex;align-items:center;gap:13px;padding:11px 16px;border-bottom:1px solid var(--hair);
+    background:linear-gradient(180deg,rgba(20,18,14,.7),rgba(14,13,11,.15))}
+  .brand{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:-.01em;white-space:nowrap}
+  .brand .k{color:var(--gold)}
+  .pill{font-size:9px;font-weight:700;letter-spacing:.14em;color:#0E0D0B;background:var(--gold);padding:3px 7px;border-radius:999px}
+  .linefield{flex:1;min-width:140px;display:flex;align-items:center;gap:8px;background:var(--surface);
+    border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+  .linefield .ic{color:var(--faint)}
+  .linefield input{flex:1;background:none;border:none;outline:none;font-size:15px;font-family:var(--disp);font-weight:600}
+  .seg{display:flex;gap:4px}
+  .seg button{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--muted)}
+  .seg button.on{background:var(--gold);border-color:var(--gold);color:#0E0D0B;font-weight:600}
+  .seg button:hover:not(.on){border-color:var(--gold);color:var(--txt)}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:9px 14px;border-radius:9px;white-space:nowrap}
+  .btn.gold{background:var(--gold);color:#0E0D0B}.btn.gold:hover{background:var(--gold2)}
+  .btn.ghost{border:1px solid var(--line)}.btn.ghost:hover{border-color:var(--gold)}
+
+  /* ---------- body: library | stage | controls ---------- */
+  .body{display:grid;grid-template-columns:236px 1fr 296px;min-height:0}
+
+  /* library */
+  .lib{border-right:1px solid var(--hair);overflow:auto;padding:13px;display:flex;flex-direction:column;gap:11px;
+    background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
+  .libhead{display:flex;align-items:center;justify-content:space-between}
+  .libhead h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .libhead button{font-size:11px;color:var(--gold)}
+  .vcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--surface);transition:border-color .15s}
+  .vcard:hover{border-color:rgba(235,218,176,.4)}
+  .vcard.on{border-color:var(--gold)}
+  .vstage{position:relative;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden;
+    background:radial-gradient(420px 200px at 50% -20%,#1b1610,transparent 70%),var(--bg)}
+  .vtitle{font-family:var(--disp);font-weight:700;text-align:center;line-height:1.02;letter-spacing:-.02em;
+    font-size:15px;padding:0 8%}
+  .vtitle .tok{display:inline-block;white-space:pre}
+  .vmeta{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;font-size:11px;color:var(--muted)}
+  .vmeta .fav{font-size:13px;color:var(--faint)}.vmeta .fav.on{color:var(--gold)}
+
+  /* stage */
+  .center{display:grid;grid-template-rows:1fr auto;min-height:0}
+  .stagewrap{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:26px;
+    background:radial-gradient(1200px 500px at 50% -10%,#1b1610 0,transparent 60%),
+               radial-gradient(900px 600px at 90% 120%,#14120d 0,transparent 55%),var(--bg)}
+  .stage{position:relative;container-type:size;aspect-ratio:16/9;
+    width:min(100%,calc((100vh - 230px)*16/9));max-height:100%;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--hair);border-radius:8px}
+  .stage[data-aspect="9:16"]{aspect-ratio:9/16;width:min(100%,calc((100vh - 230px)*9/16))}
+  .stage[data-aspect="1:1"]{aspect-ratio:1/1;width:min(100%,calc(100vh - 230px))}
+  /* tasteful alpha checker */
+  .stage::before{content:"";position:absolute;inset:0;opacity:.6;pointer-events:none;
+    background-image:linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.018) 75%),
+                     linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.018) 75%);
+    background-size:42px 42px;background-position:0 0,21px 21px}
+  .alphatag{position:absolute;top:13px;left:15px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);z-index:2}
+  .alphatag b{color:var(--gold)}
+  .scene{position:relative;text-align:center;padding:0 6%;max-width:92%}
+  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:-.02em;
+    font-size:clamp(22px,8.5cqw,120px);color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
+  .title .tok{display:inline-block;white-space:pre;will-change:transform,opacity,filter}
+  .accent{height:3px;margin:3.4cqh auto 0;width:min(58%,420px);border-radius:3px;transform:scaleX(0);transform-origin:50% 50%;
+    background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent)}
+
+  /* transport */
+  .transport{display:flex;align-items:center;gap:13px;padding:11px 20px;border-top:1px solid var(--hair);background:rgba(20,18,14,.5)}
+  .play{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;font-size:14px}
+  .play:hover{border-color:var(--gold);color:var(--gold)}
+  .scrub{flex:1;appearance:none;height:6px;border-radius:999px;outline:none;
+    background:linear-gradient(90deg,var(--gold) var(--p,50%),var(--elevated) var(--p,50%))}
+  .scrub::-webkit-slider-thumb{appearance:none;width:15px;height:15px;border-radius:50%;background:var(--gold2);border:2px solid var(--bg);cursor:pointer}
+  .tc{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:96px;text-align:right;font-variant-numeric:tabular-nums}
+  .badge{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+
+  /* controls */
+  .controls{border-left:1px solid var(--hair);overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
+  .cgroup{border-bottom:1px solid var(--hair);padding:14px 15px}
+  .cgroup h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;font-weight:600}
+  .field{margin-bottom:12px}.field:last-child{margin-bottom:0}
+  .field label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .field label b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+  .seg.wrap{flex-wrap:wrap}.seg.wrap button{flex:1;min-width:fit-content}
+  select{width:100%;background:var(--elevated);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px}
+  input[type=range]{width:100%;accent-color:var(--gold)}
+  .swatches{display:flex;gap:7px}
+  .sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+  .sw.on{border-color:#fff}
+
+  /* toast */
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
+    border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
+    opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- top bar -->
+  <header class="top">
+    <span class="brand"><span class="k">◆</span> Kinetic Typography Studio</span>
+    <span class="pill">FREE</span>
+    <div class="linefield"><span class="ic">♪</span>
+      <input id="line" value="WE OWN THE NIGHT" spellcheck="false" autocomplete="off"></div>
+    <div class="seg" id="aspect">
+      <button data-v="16:9" class="on">16:9</button><button data-v="9:16">9:16</button><button data-v="1:1">1:1</button>
+    </div>
+    <button class="btn ghost" id="generate" title="New variants">🎲 Generate</button>
+    <button class="btn gold" id="export">⬇ Export</button>
+  </header>
+
+  <div class="body">
+    <!-- variants library -->
+    <aside class="lib">
+      <div class="libhead"><h4>Variants</h4><button id="more">＋ more</button></div>
+      <div id="cards"></div>
+    </aside>
+
+    <!-- stage + transport -->
+    <section class="center">
+      <div class="stagewrap">
+        <div class="stage" id="stage" data-aspect="16:9">
+          <div class="alphatag">Preview · <b id="lookName">Aurum</b> · transparent</div>
+          <div class="scene"><div class="title" id="title"></div><div class="accent" id="accent"></div></div>
+        </div>
+      </div>
+      <footer class="transport">
+        <button class="play" id="play" title="Play (Space)">▶</button>
+        <input type="range" class="scrub" id="scrub" min="0" max="1000" value="500">
+        <span class="tc" id="tc">0.00s / 0.00s</span>
+        <span class="badge" id="badge">1080 · 30fps · alpha</span>
+      </footer>
+    </section>
+
+    <!-- controls -->
+    <aside class="controls">
+      <div class="cgroup"><h4>Animation</h4>
+        <div class="field"><label>In</label>
+          <select id="animIn">
+            <option value="maskRise">Mask Rise</option><option value="rise">Rise</option>
+            <option value="fade">Fade</option><option value="pop">Pop</option>
+            <option value="slide">Slide</option><option value="blurIn">Blur In</option></select></div>
+        <div class="field"><label>Out</label>
+          <select id="animOut">
+            <option value="fadeSink">Fade Sink</option><option value="fade">Fade</option>
+            <option value="riseOut">Rise</option><option value="maskDown">Mask Down</option></select></div>
+        <div class="field"><label>Easing</label>
+          <select id="ease">
+            <option value="outExpo">Expo</option><option value="outCubic">Cubic</option>
+            <option value="outQuint">Quint</option><option value="inOutCubic">Smooth</option>
+            <option value="outBack">Back</option><option value="outElastic">Elastic</option>
+            <option value="outBounce">Bounce</option><option value="linear">Linear</option></select></div>
+      </div>
+      <div class="cgroup"><h4>Stagger</h4>
+        <div class="field"><label>Unit</label>
+          <div class="seg wrap" id="unit"><button data-v="char">Char</button><button data-v="word" class="on">Word</button><button data-v="line">Line</button></div></div>
+        <div class="field"><label>Order</label>
+          <div class="seg wrap" id="order"><button data-v="l2r" class="on">L→R</button><button data-v="rev">R→L</button><button data-v="center">Center</button><button data-v="random">Random</button></div></div>
+        <div class="field"><label>Amount <b id="staggerV">0.60</b></label><input type="range" id="stagger" min="0" max="1" step="0.01" value="0.6"></div>
+      </div>
+      <div class="cgroup"><h4>Timing</h4>
+        <div class="field"><label>In <b id="inV">0.80s</b></label><input type="range" id="inDur" min="0.2" max="2" step="0.05" value="0.8"></div>
+        <div class="field"><label>Hold <b id="holdV">1.4s</b></label><input type="range" id="hold" min="0" max="3" step="0.1" value="1.4"></div>
+        <div class="field"><label>Out <b id="outV">0.70s</b></label><input type="range" id="outDur" min="0.2" max="2" step="0.05" value="0.7"></div>
+      </div>
+      <div class="cgroup"><h4>Type</h4>
+        <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
+        <div class="field"><label>Color</label>
+          <div class="swatches" id="colors">
+            <span class="sw on" style="background:#F4EFE6" data-c="#F4EFE6"></span>
+            <span class="sw" style="background:#EBDAB0" data-c="#EBDAB0"></span>
+            <span class="sw" style="background:#D4A574" data-c="#D4A574"></span>
+            <span class="sw" style="background:#ff9ec4" data-c="#ff9ec4"></span>
+            <span class="sw" style="background:#7cd4ff" data-c="#7cd4ff"></span></div></div>
+        <div class="field"><label>Accent line <b id="accentV">On</b></label>
+          <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { DEFAULT_STATE, duration, encodeSeed, variantFromSeed, clamp } from "../engine/engine.mjs";
+  import { createDomRenderer } from "../engine/dom-renderer.mjs";
+
+  const $ = id => document.getElementById(id);
+  let state = { ...DEFAULT_STATE };
+  let t = 0.5, playing = false, raf = 0, last = 0;
+  let genBase = 1, favorites = new Set();
+
+  const stageR = createDomRenderer($("title"), $("accent"));
+
+  /* ----- main stage ----- */
+  function draw(){
+    $("stage").dataset.aspect = state.aspect;
+    const f = stageR.render(state, t);
+    $("scrub").value = Math.round(t*1000);
+    $("scrub").style.setProperty("--p",(t*100).toFixed(1)+"%");
+    $("tc").textContent = f.timeSec.toFixed(2)+"s / "+f.dur.toFixed(2)+"s";
+    const res = {"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect];
+    $("badge").textContent = res+" · 30fps · alpha";
+  }
+  function stop(){ playing=false; cancelAnimationFrame(raf); $("play").textContent="▶"; }
+  function play(){
+    if(playing) return stop();
+    playing=true; $("play").textContent="❚❚"; if(t>=0.999) t=0; last=performance.now();
+    const step=ts=>{ if(!playing)return; t=clamp(t+(ts-last)/1000/duration(state),0,1); last=ts; draw();
+      if(t>=1) return stop(); raf=requestAnimationFrame(step); };
+    raf=requestAnimationFrame(step);
+  }
+
+  /* ----- variants library ----- */
+  function buildCards(){
+    const host = $("cards"); host.innerHTML="";
+    for(let i=0;i<9;i++){
+      const v = variantFromSeed(genBase*9+i, state.line);
+      const card = document.createElement("div");
+      card.className="vcard"; card.dataset.i=i;
+      card.innerHTML = `<div class="vstage"><div class="vtitle"></div></div>
+        <div class="vmeta"><span class="vname">Seed ${genBase*9+i}</span>
+        <button class="fav ${favorites.has(genBase*9+i)?'on':''}">${favorites.has(genBase*9+i)?'♥':'♡'}</button></div>`;
+      const r = createDomRenderer(card.querySelector(".vtitle"), null);
+      r.render(v, 0.5); // representative hold frame
+      card.addEventListener("click", e=>{
+        if(e.target.closest(".fav")){ const k=genBase*9+i;
+          favorites.has(k)?favorites.delete(k):favorites.add(k); buildCards(); markActive(); return; }
+        state = { ...v }; syncControls(); draw(); markActive(i);
+      });
+      host.appendChild(card);
+    }
+    markActive();
+  }
+  function markActive(i){ [...$("cards").children].forEach((c,j)=>c.classList.toggle("on", j===i)); }
+
+  /* ----- sync control widgets from state (after loading a variant) ----- */
+  function setSeg(id,v){ [...$(id).children].forEach(b=>b.classList.toggle("on", b.dataset.v===String(v))); }
+  function syncControls(){
+    $("animIn").value=state.animIn; $("animOut").value=state.animOut; $("ease").value=state.ease;
+    setSeg("unit",state.unit); setSeg("order",state.order); setSeg("aspect",state.aspect);
+    setSeg("accentToggle", state.accent?"1":"0"); $("accentV").textContent=state.accent?"On":"Off";
+    $("stagger").value=state.stagger; $("staggerV").textContent=state.stagger.toFixed(2);
+    $("inDur").value=state.inDur;   $("inV").textContent=state.inDur.toFixed(2)+"s";
+    $("hold").value=state.hold;     $("holdV").textContent=state.hold.toFixed(1)+"s";
+    $("outDur").value=state.outDur; $("outV").textContent=state.outDur.toFixed(2)+"s";
+    $("weight").value=state.weight; $("weightV").textContent=state.weight;
+    [...$("colors").children].forEach(s=>s.classList.toggle("on", s.dataset.c===state.color));
+  }
+
+  /* ----- toast ----- */
+  let toastT=0;
+  function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("show");
+    clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2600); }
+
+  /* ----- wiring ----- */
+  function seg(id,cb){ $(id).addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b)return;
+    [...$(id).children].forEach(x=>x.classList.remove("on")); b.classList.add("on"); cb(b.dataset.v); }); }
+
+  $("line").addEventListener("input",e=>{ state.line=e.target.value; draw(); buildCards(); });
+  seg("aspect",v=>{ state.aspect=v; draw(); });
+  $("animIn").addEventListener("change",e=>{ state.animIn=e.target.value; draw(); });
+  $("animOut").addEventListener("change",e=>{ state.animOut=e.target.value; draw(); });
+  $("ease").addEventListener("change",e=>{ state.ease=e.target.value; draw(); });
+  seg("unit",v=>{ state.unit=v; draw(); });
+  seg("order",v=>{ state.order=v; draw(); });
+  seg("accentToggle",v=>{ state.accent=v==="1"; $("accentV").textContent=state.accent?"On":"Off"; draw(); });
+  $("stagger").addEventListener("input",e=>{ state.stagger=+e.target.value; $("staggerV").textContent=state.stagger.toFixed(2); draw(); });
+  $("inDur").addEventListener("input",e=>{ state.inDur=+e.target.value; $("inV").textContent=state.inDur.toFixed(2)+"s"; draw(); });
+  $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(); });
+  $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(); });
+  $("weight").addEventListener("input",e=>{ state.weight=+e.target.value; $("weightV").textContent=state.weight; draw(); });
+  $("colors").addEventListener("click",e=>{ const s=e.target.closest(".sw"); if(!s)return;
+    [...$("colors").children].forEach(x=>x.classList.remove("on")); s.classList.add("on"); state.color=s.dataset.c; draw(); });
+  $("scrub").addEventListener("input",e=>{ stop(); t=+e.target.value/1000; draw(); });
+  $("play").addEventListener("click",play);
+  $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 neue Varianten · Seed-Basis "+genBase); });
+  $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
+  $("export").addEventListener("click",()=>toast("Export (PNG-Seq · WebM-Alpha · OGraf) — kommt als Nächstes."));
+  addEventListener("keydown",e=>{ if(e.code==="Space"&&e.target.tagName!=="INPUT"){ e.preventDefault(); play(); } });
+
+  function init(){ buildCards(); draw(); window.__ready=true; }
+  document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();
+</script>
+</body>
+</html>
