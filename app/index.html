@@ -192,6 +192,12 @@
   .famhint{font-size:9.5px;color:var(--faint);flex:1;min-width:100%}
   .famhint.ok{color:#8fd3a6}
   .famhint.warn{color:#e0b67a}
+  .fontresults{max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+  .fontresult{padding:6px 10px;font-size:15px;cursor:pointer;border-bottom:1px solid var(--hair);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+  .fontresult:last-child{border-bottom:none}
+  .fontresult:hover{background:rgba(212,165,116,.12);color:var(--gold)}
+  .fontresult.more{font-size:10px;color:var(--faint);cursor:default;text-align:center;font-family:var(--sans)}
+  .fontresult.more:hover{background:none;color:var(--faint)}
 
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
     border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
@@ -281,8 +287,8 @@
         <div class="field"><label>Font</label>
           <div class="fontaccess" id="fontAccess"></div>
           <div class="fontpick" id="fontPick"></div>
-          <div class="fontrow"><input id="fontName" list="fontList" placeholder="Type a font name…" spellcheck="false" autocomplete="off"><span id="fontFound" class="fontfound"></span></div>
-          <datalist id="fontList"></datalist>
+          <div class="fontrow"><input id="fontName" placeholder="Search or type a font name…" spellcheck="false" autocomplete="off"><span id="fontFound" class="fontfound"></span></div>
+          <div class="fontresults" id="fontResults" hidden></div>
           <label class="fontupload" id="fontDrop">⬆ Drop a font file — or click<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden></label>
         </div>
         <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
@@ -1014,11 +1020,20 @@ function createCanvasRenderer(canvas) {
   }
   async function browseFonts(){                              // Local Font Access API (Chromium/CEF, when available)
     try{ const fonts=await window.queryLocalFonts(); systemFonts=[...new Set(fonts.map(f=>f.family))].sort((a,b)=>a.localeCompare(b));
-      $("fontList").innerHTML=systemFonts.map(f=>'<option value="'+f.replace(/"/g,"&quot;")+'">').join("");
-      fontAccessState="loaded"; fontCount=systemFonts.length; renderFontAccess(); toast(systemFonts.length+" system fonts loaded"); }
+      fontAccessState="loaded"; fontCount=systemFonts.length; renderFontAccess(); renderFontResults(""); $("fontResults").hidden=false; toast(systemFonts.length+" system fonts loaded"); }
     catch(err){ fontAccessState="denied"; renderFontAccess(); toast("Font access denied — type a name or upload"); }
   }
+  function renderFontResults(filter){                        // previewed, searchable list — each name rendered in its own font
+    const host=$("fontResults"); host.innerHTML="";
+    if(!systemFonts.length){ host.hidden=true; return; }
+    const q=(filter||"").toLowerCase().trim(), match=systemFonts.filter(f=>!q||f.toLowerCase().includes(q));
+    match.slice(0,120).forEach(f=>{ const d=document.createElement("div"); d.className="fontresult"; d.textContent=f; d.style.fontFamily='"'+f+'", sans-serif';
+      d.addEventListener("click",()=>{ selectFont(f); $("fontName").value=f; const el=$("fontFound"); el.textContent="✓ selected"; el.className="fontfound ok"; }); host.appendChild(d); });
+    if(match.length>120){ const m=document.createElement("div"); m.className="fontresult more"; m.textContent="+"+(match.length-120)+" more — refine search"; host.appendChild(m); }
+    else if(!match.length){ const m=document.createElement("div"); m.className="fontresult more"; m.textContent="no match"; host.appendChild(m); }
+  }
   $("fontName").addEventListener("input",e=>{ const v=e.target.value.trim(), el=$("fontFound");
+    if(systemFonts.length){ renderFontResults(v); $("fontResults").hidden=false; }
     if(!v){ el.textContent=""; el.className="fontfound"; return; }
     const ok=fontAvailable(v); el.textContent=ok?"✓ found":"✗ not installed"; el.className="fontfound "+(ok?"ok":"no"); });
   $("fontName").addEventListener("change",e=>{ const v=e.target.value.trim(); if(v&&fontAvailable(v)){ selectFont(v); buildFontPicker(); } });
