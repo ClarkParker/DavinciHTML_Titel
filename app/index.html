@@ -567,7 +567,7 @@ function createDomRenderer(titleEl, accentEl) {
       el.style.transform = `translate(${tk.tx}em, ${tk.ty}em) scale(${tk.sc})`;
       el.style.opacity = tk.o;
       el.style.filter = tk.blur > 0.01 ? `blur(${tk.blur}px)` : "";
-      el.style.clipPath = tk.clip != null ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "";
+      el.style.clipPath = (tk.clip != null && tk.clip < 0.999) ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "none";
     }
     if (accentEl) accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
     return f;
@@ -674,7 +674,7 @@ function createCanvasRenderer(canvas) {
       if (tk.blur > 0.01) ctx.filter = `blur(${tk.blur}px)`;
       if (glow) { ctx.shadowColor = glow.color; ctx.shadowBlur = glow.amount * 1.6; }
       else { ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = px * 0.28; ctx.shadowOffsetY = px * 0.02; }
-      if (tk.clip != null) {                         // mask reveal: show bottom `clip` fraction
+      if (tk.clip != null && tk.clip < 0.999) {                         // mask reveal: show bottom `clip` fraction
         ctx.beginPath();
         ctx.rect(-p.w / 2 - 4, -px / 2 + (1 - tk.clip) * px, p.w + 8, tk.clip * px + 4);
         ctx.clip();

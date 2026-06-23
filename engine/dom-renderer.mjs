@@ -62,7 +62,7 @@ export function createDomRenderer(titleEl, accentEl) {
       el.style.transform = `translate(${tk.tx}em, ${tk.ty}em) scale(${tk.sc})`;
       el.style.opacity = tk.o;
       el.style.filter = tk.blur > 0.01 ? `blur(${tk.blur}px)` : "";
-      el.style.clipPath = tk.clip != null ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "";
+      el.style.clipPath = (tk.clip != null && tk.clip < 0.999) ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "none";
     }
     if (accentEl) accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
     return f;

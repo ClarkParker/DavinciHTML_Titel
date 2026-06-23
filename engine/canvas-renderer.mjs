@@ -96,7 +96,7 @@ export function createCanvasRenderer(canvas) {
       if (tk.blur > 0.01) ctx.filter = `blur(${tk.blur}px)`;
       if (glow) { ctx.shadowColor = glow.color; ctx.shadowBlur = glow.amount * 1.6; }
       else { ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = px * 0.28; ctx.shadowOffsetY = px * 0.02; }
-      if (tk.clip != null) {                         // mask reveal: show bottom `clip` fraction
+      if (tk.clip != null && tk.clip < 0.999) {                         // mask reveal: show bottom `clip` fraction
         ctx.beginPath();
         ctx.rect(-p.w / 2 - 4, -px / 2 + (1 - tk.clip) * px, p.w + 8, tk.clip * px + 4);
         ctx.clip();
