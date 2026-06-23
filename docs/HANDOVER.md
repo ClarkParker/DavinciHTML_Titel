@@ -70,34 +70,42 @@ collapsible panels · **export**: alpha PNG (frame) + PNG-sequence ZIP (own
 store-zip writer) · UI + code in **English**.
 
 Gap-audit wave 1 (docs/14): **#1 colour picker ✅**, **#2 glow clip fix ✅**,
-**#3 accent options ✅**.
+**#3 accent options ✅**, **#4 font size + letter-spacing ✅**,
+**#5 export resolution scale ✅** — wave 1 complete.
 
 ## 6. CURRENT WORK — continue here
-We're working through `docs/14` (the "last 20–30%" basics). User picked order:
-**do #1–#4 now, then talk about other bugs, #5 last.**
+We worked through `docs/14` (the "last 20–30%" basics). User order was:
+**#1–#4 now, then talk about other bugs, #5 last** — all of wave 1 is now done.
 - ✅ #1 Colour picker (presets+spectrum+hex+alpha; reused font/glow/accent).
 - ✅ #2 Glow rectangular-at-high-blur fix (clip skipped when fully revealed).
 - ✅ #3 Accent options (length/thickness/ends/colour).
-- ⏳ **#4 NEXT — Font SIZE + letter-spacing.** No manual size today (auto-fit
-  only) and no tracking.
-  - Suggested: add `state.fontScale` (e.g. 0.3–2.0, default 1) multiplying the
-    computed size in BOTH renderers, and `state.letterSpacing` (em). DOM:
-    `.title` `letter-spacing` + multiply font-size; canvas: scale `px` and use
-    `ctx.letterSpacing` (Chromium supports it) or manual advance. Add to
-    `DEFAULT_STATE` + `SEED_KEYS`. UI in the Type panel. Add `tools/sizetest.mjs`.
-- ⏳ #5 LAST — Export resolution scale (0.5×/1×/2× / custom); also frame-range
-  and maybe single-file WebM/MOV-alpha (F2/F3).
-- Then: revisit "other bugs" with the user (their words), and the remaining
-  base roadmap: **Save/Load + seed-link + undo/redo**, **Audio + beat-markers**,
-  **keyframes per property** (the big one — makes the timeline a full editor).
+- ✅ #4 Font SIZE + letter-spacing. `state.fontScale` (0.3–2.0, default 1) and
+  `state.letterSpacing` (em, default 0) in `DEFAULT_STATE`+`SEED_KEYS`. DOM via
+  CSS vars (`--title-scale` × clamp size, `--title-tracking` + base −.02em);
+  canvas via px×scale and `ctx.letterSpacing` (a `setType()` helper keeps every
+  measure/draw consistent; export now also gets the −.02em base). UI: Size +
+  Tracking sliders in the Type panel. Test: `tools/sizetest.mjs`.
+- ✅ #5 Export resolution scale (0.5×/1×/2×/custom). `exportScale` is a top-level
+  export setting (like fps, NOT in the seed — engine is resolution-independent).
+  `exportRes()` = aspect base × scale, used by frame/zip export + the badge.
+  UI: Resolution section in the Export dropdown. Test: `tools/restest.mjs`.
+- ⏳ **NEXT — check back with the user about "other bugs"** (their words) before
+  the big base features. Candidates from docs/14 still open: D1 separate in/out
+  easing, D2 start delay, A4 line-height, A5 text-transform, A6 alignment/position,
+  E1 preview background, E4 more aspects, F2 frame-range, C3 more effects.
+- Then the remaining base roadmap: **Save/Load + seed-link + undo/redo**,
+  **Audio + beat-markers**, **keyframes per property** (the big one — makes the
+  timeline a full editor).
 
 ## 7. Tests (all green at handover)
 `locktest, pickertest, wraptest, fxtest, canvasrendertest, fonttest, seqtest,
-colortest, collapsetest, accenttest, fontbrowsetest` (+ diagnostics: dragtest,
-glowshot, shot/shotclip). Run a quick sweep:
+colortest, collapsetest, accenttest, sizetest, restest, fontbrowsetest`
+(+ diagnostics: dragtest, glowshot, sizeshot, shot/shotclip). Note the
+screenshot tests need `app/shots/` to exist (it's gitignored): `mkdir -p
+app/shots`. Run a quick sweep:
 ```
 cd tools; for t in locktest pickertest wraptest fxtest canvasrendertest fonttest \
-  seqtest colortest collapsetest accenttest; do printf "%-15s " "$t"; \
+  seqtest colortest collapsetest accenttest sizetest restest; do printf "%-15s " "$t"; \
   node $t.mjs ../app/index.html 2>&1 | grep -E 'PASS|FAIL' | tail -1; done
 ```
 

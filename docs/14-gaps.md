@@ -8,12 +8,13 @@ Severity: 🔴 core basic (feels broken/limited without it) · 🟡 important ·
 ---
 
 ## A. Type / text (biggest cluster)
-- 🔴 **A1 — No manual font SIZE.** The title only auto-fits. A real titling tool
-  needs a size/scale control (and "fit" as one option). Today you can't make it
-  smaller/bigger on purpose.
+- ✅ **A1 — Manual font SIZE.** DONE — `state.fontScale` (0.3–2.0) multiplies the
+  auto-fit size in both renderers; Size slider in the Type panel. ("Fit" stays the
+  default at 1×.)
 - 🔴 **A2 — Color = 5 swatches only.** Needs a real color picker (full spectrum +
   hex + **alpha/opacity**). Same widget for font, glow, accent.
-- 🟡 **A3 — No letter-spacing (tracking).** Fixed in CSS, not adjustable.
+- ✅ **A3 — Letter-spacing (tracking).** DONE — `state.letterSpacing` (em) in both
+  renderers; Tracking slider in the Type panel.
 - 🟡 **A4 — No line-height (leading)** for multi-line titles.
 - 🟡 **A5 — No text transform** (UPPERCASE / lowercase / Title Case).
 - 🟡 **A6 — No alignment / position.** Always centered; no left/right, no manual
@@ -52,8 +53,9 @@ Severity: 🔴 core basic (feels broken/limited without it) · 🟡 important ·
 - 🟡 **E4 — Aspect: only 16:9 / 9:16 / 1:1.** Missing 4:5, 21:9, custom W×H.
 
 ## F. Export
-- 🔴 **F1 — Resolution is fixed per aspect.** No scale (0.5× / 2×) or custom
-  resolution.
+- ✅ **F1 — Export resolution scale.** DONE — `exportScale` (0.5×/1×/2×/custom)
+  multiplies the aspect base; Resolution section in the Export menu. Still open:
+  per-resolution presets beyond the multiplier if ever needed.
 - 🟡 **F2 — No frame range (in/out).** Always exports the whole duration.
 - 🟡 **F3 — No single-file video** (WebM/MOV with alpha) — only PNG sequence + 1 frame.
 - 🟢 **F4 — No background option on export** (alpha vs. baked solid/gradient).
@@ -71,12 +73,16 @@ Severity: 🔴 core basic (feels broken/limited without it) · 🟡 important ·
 
 ---
 
-## Suggested first wave (the "obvious basics")
-1. **Color picker** (G1/A2/C2) — full spectrum + hex + alpha, reused for font /
+## First wave (the "obvious basics") — ✅ COMPLETE
+1. ✅ **Color picker** (G1/A2/C2) — full spectrum + hex + alpha, reused for font /
    glow / accent. Unblocks several items at once.
-2. **Glow clip fix** (C1) — small, high-impact.
-3. **Accent line options** (B1) — length / thickness / caps / color / position.
-4. **Font size + letter-spacing** (A1/A3) — core type controls.
-5. **Export resolution scale** (F1).
+2. ✅ **Glow clip fix** (C1) — small, high-impact.
+3. ✅ **Accent line options** (B1) — length / thickness / caps / color / position.
+4. ✅ **Font size + letter-spacing** (A1/A3) — core type controls.
+5. ✅ **Export resolution scale** (F1).
 
-Everything here is one app, gated later by the free/full switch — not a fork.
+Next: check back with the user re "other bugs", then pick a second wave from the
+🟡 items above (e.g. D1 separate in/out easing, A4 line-height, A5 text-transform,
+A6 alignment/position, E1 preview background, F2 frame-range) before the big base
+features (Save/Load + seed-link + undo, Audio + beat-markers, per-property
+keyframes). Everything here is one app, gated later by the free/full switch — not a fork.
