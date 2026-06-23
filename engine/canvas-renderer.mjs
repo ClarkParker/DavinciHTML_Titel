@@ -10,7 +10,7 @@
  */
 import { sampleFrame, EFFECTS } from "./engine.mjs";
 
-const FONT = '"Bricolage Grotesque", Georgia, serif';
+let FAM = '"Georgia", serif';
 
 export function createCanvasRenderer(canvas) {
   const ctx = canvas.getContext("2d");
@@ -19,7 +19,7 @@ export function createCanvasRenderer(canvas) {
      then shrink if the widest word would overflow the safe area */
   function fontSizeFor(frame, W) {
     let px = Math.min(Math.max(W * 0.082, 28), W * 0.12);
-    ctx.font = `${700} ${px}px ${FONT}`;
+    ctx.font = `${700} ${px}px ${FAM}`;
     const maxW = W * 0.86;
     let widest = 0;
     for (const tk of frame.tokens) if (!tk.isSpace) widest = Math.max(widest, ctx.measureText(tk.text).width);
@@ -29,7 +29,7 @@ export function createCanvasRenderer(canvas) {
 
   /* group tokens into centered, word-wrapped lines; return per-token centre points */
   function layout(frame, px, W, H, weight) {
-    ctx.font = `${weight} ${px}px ${FONT}`;
+    ctx.font = `${weight} ${px}px ${FAM}`;
     const spaceW = ctx.measureText(" ").width;
     const maxW = W * 0.86;
     const measured = frame.tokens.map(tk => ({ tk, w: tk.isSpace ? spaceW : ctx.measureText(tk.text).width }));
@@ -74,6 +74,7 @@ export function createCanvasRenderer(canvas) {
   function render(state, t) {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);                       // transparent background
+    FAM = '"' + (state.font || "Georgia") + '", serif';
 
     const f = sampleFrame(state, t);
     const px = fontSizeFor(f, W);
@@ -82,7 +83,7 @@ export function createCanvasRenderer(canvas) {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `${state.weight} ${px}px ${FONT}`;
+    ctx.font = `${state.weight} ${px}px ${FAM}`;
     ctx.fillStyle = state.color;
 
     for (const tk of f.tokens) {
@@ -119,7 +120,7 @@ export function createCanvasRenderer(canvas) {
   function layoutBottom(frame, px, H) {
     const lineH = px * 1.12;
     // recompute line count cheaply
-    ctx.font = `${700} ${px}px ${FONT}`;
+    ctx.font = `${700} ${px}px ${FAM}`;
     const maxW = canvas.width * 0.86; let lines = 1, w = 0, spaceW = ctx.measureText(" ").width;
     let cur = 0;
     for (const tk of frame.tokens) {

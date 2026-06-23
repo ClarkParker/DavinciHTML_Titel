@@ -35,6 +35,7 @@ export function createDomRenderer(titleEl, accentEl) {
   }
 
   function applyLook(state) {
+    titleEl.style.fontFamily = '"' + (state.font || "Georgia") + '", serif';
     titleEl.style.fontWeight = String(state.weight);
     titleEl.style.setProperty("font-variation-settings", `'wght' ${state.weight}`);
     titleEl.style.color = state.color;

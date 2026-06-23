@@ -167,6 +167,19 @@
   .fxfield label b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
   .fxfield input[type=range]{width:100%;accent-color:var(--gold)}
   .fxsw{display:flex;gap:6px}
+  /* font picker */
+  .fonthint{font-weight:400;font-size:9.5px;color:var(--faint);text-transform:none;letter-spacing:0}
+  .fontpick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+  .fontchip{font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 9px;color:var(--txt);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.25}
+  .fontchip:hover{border-color:var(--gold)}
+  .fontchip.on{border-color:var(--gold);color:var(--gold)}
+  .fontchip.missing{color:var(--faint);border-style:dashed;opacity:.55;cursor:not-allowed}
+  .fontrow{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+  .fontrow input{flex:1;min-width:0;background:var(--elevated);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-size:12.5px;padding:7px 9px}
+  .fontfound{font-size:10.5px;white-space:nowrap}
+  .fontfound.ok{color:#8fd3a6}.fontfound.no{color:#e0b67a}
+  .fontupload{display:block;text-align:center;font-size:11.5px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:9px;cursor:pointer}
+  .fontupload:hover,.fontupload.drag{border-color:var(--gold);color:var(--gold);background:rgba(212,165,116,.07)}
 
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
     border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
@@ -188,8 +201,8 @@
     <div class="exportwrap">
       <button class="btn gold" id="export">⬇ Export</button>
       <div class="exportmenu" id="exportMenu" hidden>
-        <button id="expSeq">⬇ PNG-Sequenz (ZIP) · Alpha</button>
-        <button id="expFrame">⬇ Aktueller Frame (PNG)</button>
+        <button id="expSeq">⬇ PNG sequence (ZIP) · alpha</button>
+        <button id="expFrame">⬇ Current frame (PNG)</button>
       </div>
     </div>
   </header>
@@ -210,16 +223,16 @@
       <footer class="transport">
         <div class="tbar">
           <div class="tctrl">
-            <button class="tbtn" id="toStart" title="Anfang">⏮</button>
-            <button class="tbtn" id="framePrev" title="−1 Frame (,)">‹</button>
-            <button class="tbtn play" id="play" title="Play/Pause (Leertaste)">▶</button>
-            <button class="tbtn" id="frameNext" title="+1 Frame (.)">›</button>
-            <button class="tbtn" id="toEnd" title="Ende">⏭</button>
+            <button class="tbtn" id="toStart" title="Start">⏮</button>
+            <button class="tbtn" id="framePrev" title="−1 frame (,)">‹</button>
+            <button class="tbtn play" id="play" title="Play/Pause (Space)">▶</button>
+            <button class="tbtn" id="frameNext" title="+1 frame (.)">›</button>
+            <button class="tbtn" id="toEnd" title="End">⏭</button>
             <span class="tsep"></span>
-            <button class="tbtn" id="kfPrev" title="Vorheriger Keyframe">◆‹</button>
-            <button class="tbtn" id="kfNext" title="Nächster Keyframe">›◆</button>
+            <button class="tbtn" id="kfPrev" title="Previous keyframe">◆‹</button>
+            <button class="tbtn" id="kfNext" title="Next keyframe">›◆</button>
             <button class="tbtn on" id="loop" title="Loop">⟲</button>
-            <button class="tbtn" id="lock" title="Beats sperren – Timing bleibt beim Stylewechsel erhalten">🔓</button>
+            <button class="tbtn" id="lock" title="Lock beats — timing stays when you change style">🔓</button>
           </div>
           <div class="treadout">
             <label class="tset">fps <select id="fps">
@@ -253,6 +266,11 @@
         <div class="field"><label>Out <b id="outV">0.70s</b></label><input type="range" id="outDur" min="0.2" max="2" step="0.05" value="0.7"></div>
       </div>
       <div class="cgroup"><h4>Type</h4>
+        <div class="field"><label>Font <span id="fontStatus" class="fonthint"></span></label>
+          <div class="fontpick" id="fontPick"></div>
+          <div class="fontrow"><input id="fontName" placeholder="Type a font name…" spellcheck="false" autocomplete="off"><span id="fontFound" class="fontfound"></span></div>
+          <label class="fontupload" id="fontDrop">⬆ Drop a font file — or click<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden></label>
+        </div>
         <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
         <div class="field"><label>Color</label>
           <div class="swatches" id="colors">
@@ -330,7 +348,7 @@
   $("frames").addEventListener("change",e=>setTotalFrames(e.target.value));
   $("lock").addEventListener("click",()=>{ lockBeats=!lockBeats; $("lock").classList.toggle("on",lockBeats);
     $("lock").textContent=lockBeats?"🔒":"🔓"; rebuildTimeline();
-    toast(lockBeats?"Beats gesperrt · Timing bleibt beim Stylewechsel":"Beats entsperrt"); });
+    toast(lockBeats?"Beats locked · timing stays across style changes":"Beats unlocked"); });
 
   function renderStage(){
     $("stage").dataset.aspect = state.aspect;
@@ -390,6 +408,7 @@
     $("outDur").value=state.outDur; $("outV").textContent=(+state.outDur).toFixed(2)+"s";
     $("weight").value=state.weight; $("weightV").textContent=state.weight;
     [...$("colors").children].forEach(s=>s.classList.toggle("on", s.dataset.c===state.color));
+    markFontActive(state.font); $("fontName").value="";
   }
 
   let toastT=0;
@@ -455,7 +474,7 @@
   $("frameNext").addEventListener("click",()=>stepFrame(1));
   $("kfPrev").addEventListener("click",()=>jumpKeyframe(-1));
   $("kfNext").addEventListener("click",()=>jumpKeyframe(1));
-  $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 neue Varianten · Seed-Basis "+genBase); });
+  $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 new variants · seed base "+genBase); });
   $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
   /* ---------- Export: alpha PNG (frame) + PNG-sequence ZIP (the Resolve workflow) ---------- */
   const EXPORT_RES = { "16:9":[1920,1080], "9:16":[1080,1920], "1:1":[1080,1080] };
@@ -478,7 +497,7 @@
   function exportFrame(){
     const [w,h]=EXPORT_RES[state.aspect]||[1920,1080]; const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
     createCanvasRenderer(cv).render({ ...state, effects:fxStack }, t);
-    cv.toBlob(b=>{ b.arrayBuffer().then(ab=>download(new Uint8Array(ab),"title_f"+String(Math.round(t*duration(state)*fps)).padStart(4,"0")+".png","image/png")); toast("PNG · "+w+"×"+h+" · Alpha"); },"image/png");
+    cv.toBlob(b=>{ b.arrayBuffer().then(ab=>download(new Uint8Array(ab),"title_f"+String(Math.round(t*duration(state)*fps)).padStart(4,"0")+".png","image/png")); toast("PNG · "+w+"×"+h+" · alpha"); },"image/png");
   }
   async function buildSequenceZip(opts={}){
     const [w,h]=EXPORT_RES[state.aspect]||[1920,1080];
@@ -492,9 +511,9 @@
   let exporting=false;
   async function exportSequence(){
     if(exporting) return; exporting=true; stop();
-    try{ const { zip,total,w,h }=await buildSequenceZip({ onProgress:p=>toast("Exportiere Sequenz… "+Math.round(p*100)+"%") });
-      download(zip,"kinetic_title_"+w+"x"+h+"_"+fps+"fps_"+total+"f.zip","application/zip"); toast("ZIP · "+total+" Frames · "+w+"×"+h+" · Alpha"); }
-    catch(e){ toast("Export-Fehler: "+e.message); } finally{ exporting=false; }
+    try{ const { zip,total,w,h }=await buildSequenceZip({ onProgress:p=>toast("Exporting sequence… "+Math.round(p*100)+"%") });
+      download(zip,"kinetic_title_"+w+"x"+h+"_"+fps+"fps_"+total+"f.zip","application/zip"); toast("ZIP · "+total+" frames · "+w+"×"+h+" · alpha"); }
+    catch(e){ toast("Export error: "+e.message); } finally{ exporting=false; }
   }
   $("export").addEventListener("click",e=>{ e.stopPropagation(); $("exportMenu").hidden=!$("exportMenu").hidden; });
   document.addEventListener("click",()=>{ $("exportMenu").hidden=true; });
@@ -514,7 +533,7 @@
     EFFECT_LIST.forEach(e=>{ const b=document.createElement("button"); b.className="fxchip"; b.textContent="＋ "+e.name;
       b.title=e.kind+" · "+e.tier; b.addEventListener("click",()=>addEffect(e.id)); host.appendChild(b); }); }
   function addEffect(id){ const def=EFFECTS[id]; if(!def) return; const params={}; def.params.forEach(p=>params[p.key]=p.default);
-    fxStack.push({ id, on:true, params }); renderFxStack(); renderStage(); toast(def.name+" hinzugefügt"); }
+    fxStack.push({ id, on:true, params }); renderFxStack(); renderStage(); toast(def.name+" added"); }
   function renderFxStack(){
     const host=$("fxStack"); host.innerHTML="";
     fxStack.forEach((fx,idx)=>{
@@ -541,7 +560,48 @@
       host.appendChild(card);
     });
   }
-  function init(){ buildFxAdd(); buildCards(); draw(true); window.__ready=true; }
+  /* ---------- Fonts: system quick-picks + type-a-name + drag-drop upload (FontFace) ---------- */
+  const COMMON_FONTS = ["Georgia","Times New Roman","Palatino Linotype","Garamond","Baskerville",
+    "Arial","Helvetica","Helvetica Neue","Inter","Verdana","Trebuchet MS","Tahoma","Gill Sans",
+    "Futura","Impact","Oswald","Courier New","serif","sans-serif","monospace"];
+  let uploadedFonts = [], upN = 0;
+  const _fc = document.createElement("canvas").getContext("2d");
+  function fontAvailable(name){                              // reliable measureText probe
+    if(/^(serif|sans-serif|monospace)$/i.test(name)) return true;
+    const s="WgEail MOmqQ@10", px="72px";
+    const test=base=>{ _fc.font=px+" "+base; const b=_fc.measureText(s).width; _fc.font=px+' "'+name+'", '+base; return _fc.measureText(s).width!==b; };
+    return test("monospace")||test("serif")||test("sans-serif");
+  }
+  function markFontActive(fam){ [...$("fontPick").children].forEach(c=>c.classList.toggle("on", c.dataset.f===fam)); }
+  function selectFont(fam){ state.font=fam; markFontActive(fam); draw(); }
+  function buildFontPicker(){
+    const host=$("fontPick"); host.innerHTML="";
+    [...uploadedFonts, ...COMMON_FONTS].forEach(item=>{
+      const fam = typeof item==="string"? item : item.fam, label = typeof item==="string"? item : item.label;
+      const ok = (typeof item!=="string") || fontAvailable(fam);
+      const c=document.createElement("div"); c.className="fontchip"+(ok?"":" missing")+(state.font===fam?" on":"");
+      c.dataset.f=fam; c.textContent=label; c.style.fontFamily='"'+fam+'", serif'; c.title=ok?fam:fam+" — not installed";
+      if(ok) c.addEventListener("click",()=>selectFont(fam));
+      host.appendChild(c);
+    });
+    $("fontStatus").textContent = ("queryLocalFonts" in window) ? "· system fonts browsable" : "· can't list installed fonts here — type a name or upload";
+  }
+  $("fontName").addEventListener("input",e=>{ const v=e.target.value.trim(), el=$("fontFound");
+    if(!v){ el.textContent=""; el.className="fontfound"; return; }
+    const ok=fontAvailable(v); el.textContent=ok?"✓ found":"✗ not installed"; el.className="fontfound "+(ok?"ok":"no"); });
+  $("fontName").addEventListener("change",e=>{ const v=e.target.value.trim(); if(v&&fontAvailable(v)){ selectFont(v); buildFontPicker(); } });
+  async function loadFontFile(file){
+    if(!file) return;
+    try{ const buf=await file.arrayBuffer(), fam="KTUser_"+(++upN); const ff=new FontFace(fam, buf); await ff.load(); document.fonts.add(ff);
+      uploadedFonts.unshift({ fam, label:(file.name||"Custom").replace(/\.(ttf|otf|woff2?)$/i,"") }); buildFontPicker(); selectFont(fam); toast("Font loaded: "+(file.name||fam)); }
+    catch(err){ toast("Couldn't load font: "+err.message); }
+  }
+  $("fontFile").addEventListener("change",e=>loadFontFile(e.target.files[0]));
+  ["dragover","dragenter"].forEach(ev=>$("fontDrop").addEventListener(ev,e=>{ e.preventDefault(); $("fontDrop").classList.add("drag"); }));
+  ["dragleave","dragend"].forEach(ev=>$("fontDrop").addEventListener(ev,e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); }));
+  $("fontDrop").addEventListener("drop",e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) loadFontFile(f); });
+
+  function init(){ buildFontPicker(); buildFxAdd(); buildCards(); draw(true); window.__ready=true; }
   document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();
 </script>
 </body>
