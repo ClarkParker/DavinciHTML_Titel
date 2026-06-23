@@ -11,6 +11,9 @@
 import { sampleFrame, EFFECTS } from "./engine.mjs";
 
 let FAM = '"Georgia", serif';
+let SCALE = 1;            // state.fontScale — manual size multiplier
+let TRACK_EM = -0.02;     // total letter-spacing in em: BASE_TRACK_EM + state.letterSpacing
+const BASE_TRACK_EM = -0.02;   // mirrors the .title CSS base tracking so export matches preview
 
 function transparentOf(col){
   if (col[0] === "#") { let h = col.slice(1); if (h.length === 3) h = h.split("").map(c => c + c).join("");
@@ -22,11 +25,17 @@ function transparentOf(col){
 export function createCanvasRenderer(canvas) {
   const ctx = canvas.getContext("2d");
 
+  /* set font + letter-spacing together (tracking scales with px, mirrors CSS em) */
+  function setType(px, weight) {
+    ctx.font = `${weight} ${px}px ${FAM}`;
+    ctx.letterSpacing = (TRACK_EM * px).toFixed(3) + "px";
+  }
+
   /* pick a font size from the output width (mirrors the preview's ~8.2cqw),
-     then shrink if the widest word would overflow the safe area */
+     apply the manual scale, then shrink if the widest word would overflow */
   function fontSizeFor(frame, W) {
-    let px = Math.min(Math.max(W * 0.082, 28), W * 0.12);
-    ctx.font = `${700} ${px}px ${FAM}`;
+    let px = Math.min(Math.max(W * 0.082, 28), W * 0.12) * SCALE;
+    setType(px, 700);
     const maxW = W * 0.86;
     let widest = 0;
     for (const tk of frame.tokens) if (!tk.isSpace) widest = Math.max(widest, ctx.measureText(tk.text).width);
@@ -36,7 +45,7 @@ export function createCanvasRenderer(canvas) {
 
   /* group tokens into centered, word-wrapped lines; return per-token centre points */
   function layout(frame, px, W, H, weight) {
-    ctx.font = `${weight} ${px}px ${FAM}`;
+    setType(px, weight);
     const spaceW = ctx.measureText(" ").width;
     const maxW = W * 0.86;
     const measured = frame.tokens.map(tk => ({ tk, w: tk.isSpace ? spaceW : ctx.measureText(tk.text).width }));
@@ -82,6 +91,8 @@ export function createCanvasRenderer(canvas) {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);                       // transparent background
     FAM = '"' + (state.font || "Georgia") + '", serif';
+    SCALE = state.fontScale ?? 1;                     // manual size multiplier
+    TRACK_EM = BASE_TRACK_EM + (state.letterSpacing ?? 0);  // tracking (em), incl. CSS base
 
     const f = sampleFrame(state, t);
     const px = fontSizeFor(f, W);
@@ -90,7 +101,7 @@ export function createCanvasRenderer(canvas) {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `${state.weight} ${px}px ${FAM}`;
+    setType(px, state.weight);
     ctx.fillStyle = state.color;
 
     for (const tk of f.tokens) {
@@ -130,7 +141,7 @@ export function createCanvasRenderer(canvas) {
   function layoutBottom(frame, px, H) {
     const lineH = px * 1.12;
     // recompute line count cheaply
-    ctx.font = `${700} ${px}px ${FAM}`;
+    setType(px, 700);
     const maxW = canvas.width * 0.86; let lines = 1, w = 0, spaceW = ctx.measureText(" ").width;
     let cur = 0;
     for (const tk of frame.tokens) {

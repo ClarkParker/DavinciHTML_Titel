@@ -82,7 +82,7 @@ export const DEFAULT_STATE = {
   unit: "word", order: "l2r",
   animIn: "maskRise", animOut: "fadeSink", ease: "outExpo",
   stagger: 0.6, inDur: 0.8, hold: 1.4, outDur: 0.7,
-  weight: 700, color: "#F4EFE6", accent: true, font: "Georgia",
+  weight: 700, fontScale: 1, letterSpacing: 0, color: "#F4EFE6", accent: true, font: "Georgia",
   accentLen: 0.5, accentThick: 4, accentColor: "#EBDAB0", accentCap: "taper",
   aspect: "16:9",
 };
@@ -154,7 +154,7 @@ export function sampleFrame(state, t) {
 }
 
 /* ---- Pillar 3: Seed = the whole look ↔ a compact, shareable string ---- */
-const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","color","accent","accentLen","accentThick","accentColor","accentCap","font","aspect"];
+const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","fontScale","letterSpacing","color","accent","accentLen","accentThick","accentColor","accentCap","font","aspect"];
 const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const ub64 = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
 export function encodeSeed(state) {

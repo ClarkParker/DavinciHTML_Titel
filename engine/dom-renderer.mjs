@@ -39,6 +39,9 @@ export function createDomRenderer(titleEl, accentEl) {
     titleEl.style.fontWeight = String(state.weight);
     titleEl.style.setProperty("font-variation-settings", `'wght' ${state.weight}`);
     titleEl.style.color = state.color;
+    // manual size + tracking: CSS owns the base (clamp / -.02em); these vars scale it
+    titleEl.style.setProperty("--title-scale", state.fontScale ?? 1);
+    titleEl.style.setProperty("--title-tracking", (state.letterSpacing ?? 0) + "em");
   }
 
   function applyEffects(state) {

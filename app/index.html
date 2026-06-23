@@ -91,8 +91,8 @@
   .alphatag{position:absolute;top:13px;left:15px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);z-index:2}
   .alphatag b{color:var(--gold)}
   .scene{position:relative;text-align:center;padding:0 6%;max-width:92%}
-  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:-.02em;
-    font-size:clamp(20px,8.2cqw,108px);color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
+  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:calc(-.02em + var(--title-tracking,0em));
+    font-size:calc(clamp(20px,8.2cqw,108px) * var(--title-scale,1));color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
   .title .tok{display:inline-block;white-space:pre;will-change:transform,opacity,filter}
   .word{display:inline-block;white-space:nowrap}
   .accent{height:3px;margin:3.2cqh auto 0;width:min(58%,420px);border-radius:3px;transform:scaleX(0);transform-origin:50% 50%;
@@ -302,6 +302,8 @@
           <label class="fontupload" id="fontDrop">⬆ Drop a font file — or click<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden></label>
         </div>
         <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
+        <div class="field"><label>Size <b id="fontScaleV">100%</b></label><input type="range" id="fontScale" min="0.3" max="2" step="0.05" value="1"></div>
+        <div class="field"><label>Tracking <b id="letterSpacingV">0.000em</b></label><input type="range" id="letterSpacing" min="-0.1" max="0.5" step="0.005" value="0"></div>
         <div class="field"><label>Color</label><div class="cpick" id="fontColor"></div></div>
         <div class="field"><label>Accent line <b id="accentV">On</b></label>
           <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
@@ -409,7 +411,7 @@ const DEFAULT_STATE = {
   unit: "word", order: "l2r",
   animIn: "maskRise", animOut: "fadeSink", ease: "outExpo",
   stagger: 0.6, inDur: 0.8, hold: 1.4, outDur: 0.7,
-  weight: 700, color: "#F4EFE6", accent: true, font: "Georgia",
+  weight: 700, fontScale: 1, letterSpacing: 0, color: "#F4EFE6", accent: true, font: "Georgia",
   accentLen: 0.5, accentThick: 4, accentColor: "#EBDAB0", accentCap: "taper",
   aspect: "16:9",
 };
@@ -481,7 +483,7 @@ function sampleFrame(state, t) {
 }
 
 /* ---- Pillar 3: Seed = the whole look ↔ a compact, shareable string ---- */
-const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","color","accent","accentLen","accentThick","accentColor","accentCap","font","aspect"];
+const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","fontScale","letterSpacing","color","accent","accentLen","accentThick","accentColor","accentCap","font","aspect"];
 const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const ub64 = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
 function encodeSeed(state) {
@@ -552,6 +554,9 @@ function createDomRenderer(titleEl, accentEl) {
     titleEl.style.fontWeight = String(state.weight);
     titleEl.style.setProperty("font-variation-settings", `'wght' ${state.weight}`);
     titleEl.style.color = state.color;
+    // manual size + tracking: CSS owns the base (clamp / -.02em); these vars scale it
+    titleEl.style.setProperty("--title-scale", state.fontScale ?? 1);
+    titleEl.style.setProperty("--title-tracking", (state.letterSpacing ?? 0) + "em");
   }
 
   function applyEffects(state) {
@@ -604,6 +609,9 @@ function createDomRenderer(titleEl, accentEl) {
 
 
 let FAM = '"Georgia", serif';
+let SCALE = 1;            // state.fontScale — manual size multiplier
+let TRACK_EM = -0.02;     // total letter-spacing in em: BASE_TRACK_EM + state.letterSpacing
+const BASE_TRACK_EM = -0.02;   // mirrors the .title CSS base tracking so export matches preview
 
 function transparentOf(col){
   if (col[0] === "#") { let h = col.slice(1); if (h.length === 3) h = h.split("").map(c => c + c).join("");
@@ -615,11 +623,17 @@ function transparentOf(col){
 function createCanvasRenderer(canvas) {
   const ctx = canvas.getContext("2d");
 
+  /* set font + letter-spacing together (tracking scales with px, mirrors CSS em) */
+  function setType(px, weight) {
+    ctx.font = `${weight} ${px}px ${FAM}`;
+    ctx.letterSpacing = (TRACK_EM * px).toFixed(3) + "px";
+  }
+
   /* pick a font size from the output width (mirrors the preview's ~8.2cqw),
-     then shrink if the widest word would overflow the safe area */
+     apply the manual scale, then shrink if the widest word would overflow */
   function fontSizeFor(frame, W) {
-    let px = Math.min(Math.max(W * 0.082, 28), W * 0.12);
-    ctx.font = `${700} ${px}px ${FAM}`;
+    let px = Math.min(Math.max(W * 0.082, 28), W * 0.12) * SCALE;
+    setType(px, 700);
     const maxW = W * 0.86;
     let widest = 0;
     for (const tk of frame.tokens) if (!tk.isSpace) widest = Math.max(widest, ctx.measureText(tk.text).width);
@@ -629,7 +643,7 @@ function createCanvasRenderer(canvas) {
 
   /* group tokens into centered, word-wrapped lines; return per-token centre points */
   function layout(frame, px, W, H, weight) {
-    ctx.font = `${weight} ${px}px ${FAM}`;
+    setType(px, weight);
     const spaceW = ctx.measureText(" ").width;
     const maxW = W * 0.86;
     const measured = frame.tokens.map(tk => ({ tk, w: tk.isSpace ? spaceW : ctx.measureText(tk.text).width }));
@@ -675,6 +689,8 @@ function createCanvasRenderer(canvas) {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);                       // transparent background
     FAM = '"' + (state.font || "Georgia") + '", serif';
+    SCALE = state.fontScale ?? 1;                     // manual size multiplier
+    TRACK_EM = BASE_TRACK_EM + (state.letterSpacing ?? 0);  // tracking (em), incl. CSS base
 
     const f = sampleFrame(state, t);
     const px = fontSizeFor(f, W);
@@ -683,7 +699,7 @@ function createCanvasRenderer(canvas) {
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `${state.weight} ${px}px ${FAM}`;
+    setType(px, state.weight);
     ctx.fillStyle = state.color;
 
     for (const tk of f.tokens) {
@@ -723,7 +739,7 @@ function createCanvasRenderer(canvas) {
   function layoutBottom(frame, px, H) {
     const lineH = px * 1.12;
     // recompute line count cheaply
-    ctx.font = `${700} ${px}px ${FAM}`;
+    setType(px, 700);
     const maxW = canvas.width * 0.86; let lines = 1, w = 0, spaceW = ctx.measureText(" ").width;
     let cur = 0;
     for (const tk of frame.tokens) {
@@ -856,6 +872,8 @@ function createCanvasRenderer(canvas) {
     $("hold").value=state.hold;     $("holdV").textContent=(+state.hold).toFixed(1)+"s";
     $("outDur").value=state.outDur; $("outV").textContent=(+state.outDur).toFixed(2)+"s";
     $("weight").value=state.weight; $("weightV").textContent=state.weight;
+    $("fontScale").value=state.fontScale??1; $("fontScaleV").textContent=Math.round((state.fontScale??1)*100)+"%";
+    $("letterSpacing").value=state.letterSpacing??0; $("letterSpacingV").textContent=(state.letterSpacing??0).toFixed(3)+"em";
     if(fontColorPicker) fontColorPicker.set(state.color);
     markFontActive(state.font); $("fontName").value="";
   }
@@ -916,6 +934,8 @@ function createCanvasRenderer(canvas) {
   $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(true); });
   $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(true); });
   $("weight").addEventListener("input",e=>{ state.weight=+e.target.value; $("weightV").textContent=state.weight; draw(); });
+  $("fontScale").addEventListener("input",e=>{ state.fontScale=+e.target.value; $("fontScaleV").textContent=Math.round(state.fontScale*100)+"%"; draw(); });
+  $("letterSpacing").addEventListener("input",e=>{ state.letterSpacing=+e.target.value; $("letterSpacingV").textContent=state.letterSpacing.toFixed(3)+"em"; draw(); });
   /* font colour is wired via the colour picker (init) */
   $("play").addEventListener("click",play);
   $("loop").addEventListener("click",()=>{ loop=!loop; $("loop").classList.toggle("on",loop); });

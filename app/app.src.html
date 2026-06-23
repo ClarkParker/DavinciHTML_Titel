@@ -91,8 +91,8 @@
   .alphatag{position:absolute;top:13px;left:15px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);z-index:2}
   .alphatag b{color:var(--gold)}
   .scene{position:relative;text-align:center;padding:0 6%;max-width:92%}
-  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:-.02em;
-    font-size:clamp(20px,8.2cqw,108px);color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
+  .title{font-family:var(--disp);font-weight:700;line-height:1.04;letter-spacing:calc(-.02em + var(--title-tracking,0em));
+    font-size:calc(clamp(20px,8.2cqw,108px) * var(--title-scale,1));color:var(--txt);text-shadow:0 2px 30px rgba(0,0,0,.5)}
   .title .tok{display:inline-block;white-space:pre;will-change:transform,opacity,filter}
   .word{display:inline-block;white-space:nowrap}
   .accent{height:3px;margin:3.2cqh auto 0;width:min(58%,420px);border-radius:3px;transform:scaleX(0);transform-origin:50% 50%;
@@ -302,6 +302,8 @@
           <label class="fontupload" id="fontDrop">⬆ Drop a font file — or click<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden></label>
         </div>
         <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
+        <div class="field"><label>Size <b id="fontScaleV">100%</b></label><input type="range" id="fontScale" min="0.3" max="2" step="0.05" value="1"></div>
+        <div class="field"><label>Tracking <b id="letterSpacingV">0.000em</b></label><input type="range" id="letterSpacing" min="-0.1" max="0.5" step="0.005" value="0"></div>
         <div class="field"><label>Color</label><div class="cpick" id="fontColor"></div></div>
         <div class="field"><label>Accent line <b id="accentV">On</b></label>
           <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
@@ -440,6 +442,8 @@
     $("hold").value=state.hold;     $("holdV").textContent=(+state.hold).toFixed(1)+"s";
     $("outDur").value=state.outDur; $("outV").textContent=(+state.outDur).toFixed(2)+"s";
     $("weight").value=state.weight; $("weightV").textContent=state.weight;
+    $("fontScale").value=state.fontScale??1; $("fontScaleV").textContent=Math.round((state.fontScale??1)*100)+"%";
+    $("letterSpacing").value=state.letterSpacing??0; $("letterSpacingV").textContent=(state.letterSpacing??0).toFixed(3)+"em";
     if(fontColorPicker) fontColorPicker.set(state.color);
     markFontActive(state.font); $("fontName").value="";
   }
@@ -500,6 +504,8 @@
   $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(true); });
   $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(true); });
   $("weight").addEventListener("input",e=>{ state.weight=+e.target.value; $("weightV").textContent=state.weight; draw(); });
+  $("fontScale").addEventListener("input",e=>{ state.fontScale=+e.target.value; $("fontScaleV").textContent=Math.round(state.fontScale*100)+"%"; draw(); });
+  $("letterSpacing").addEventListener("input",e=>{ state.letterSpacing=+e.target.value; $("letterSpacingV").textContent=state.letterSpacing.toFixed(3)+"em"; draw(); });
   /* font colour is wired via the colour picker (init) */
   $("play").addEventListener("click",play);
   $("loop").addEventListener("click",()=>{ loop=!loop; $("loop").classList.toggle("on",loop); });
