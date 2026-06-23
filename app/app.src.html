@@ -52,6 +52,11 @@
   .btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:12.5px;padding:9px 13px;border-radius:9px;white-space:nowrap}
   .btn.gold{background:var(--gold);color:#0E0D0B}.btn.gold:hover{background:var(--gold2)}
   .btn.ghost{border:1px solid var(--line)}.btn.ghost:hover{border-color:var(--gold)}
+  .exportwrap{position:relative}
+  .exportmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:20;background:var(--elevated);border:1px solid var(--line);border-radius:10px;padding:5px;min-width:220px;box-shadow:0 12px 34px rgba(0,0,0,.55)}
+  .exportmenu[hidden]{display:none}
+  .exportmenu button{display:block;width:100%;text-align:left;font-size:12.5px;color:var(--txt);padding:8px 10px;border-radius:7px;white-space:nowrap}
+  .exportmenu button:hover{background:rgba(212,165,116,.14);color:var(--gold)}
 
   /* ---------- library ---------- */
   .lib{border-right:1px solid var(--hair);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;
@@ -180,7 +185,13 @@
       <button data-v="16:9" class="on">16:9</button><button data-v="9:16">9:16</button><button data-v="1:1">1:1</button>
     </div>
     <button class="btn ghost" id="generate" title="New variants">🎲 Generate</button>
-    <button class="btn gold" id="export">⬇ Export</button>
+    <div class="exportwrap">
+      <button class="btn gold" id="export">⬇ Export</button>
+      <div class="exportmenu" id="exportMenu" hidden>
+        <button id="expSeq">⬇ PNG-Sequenz (ZIP) · Alpha</button>
+        <button id="expFrame">⬇ Aktueller Frame (PNG)</button>
+      </div>
+    </div>
   </header>
 
   <div class="body">
@@ -446,21 +457,51 @@
   $("kfNext").addEventListener("click",()=>jumpKeyframe(1));
   $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 neue Varianten · Seed-Basis "+genBase); });
   $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
+  /* ---------- Export: alpha PNG (frame) + PNG-sequence ZIP (the Resolve workflow) ---------- */
   const EXPORT_RES = { "16:9":[1920,1080], "9:16":[1080,1920], "1:1":[1080,1080] };
-  function exportFrame(){
-    const [w,h] = EXPORT_RES[state.aspect] || [1920,1080];
-    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
-    createCanvasRenderer(cv).render({ ...state, effects:fxStack }, t);
-    cv.toBlob(b=>{ if(!b){ toast("Export fehlgeschlagen"); return; }
-      const a=document.createElement("a"); a.href=URL.createObjectURL(b);
-      a.download = "title_f"+String(Math.round(t*duration(state)*fps)).padStart(3,"0")+".png"; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 2000); toast("PNG exportiert · "+w+"×"+h+" · Alpha"); }, "image/png");
+  const CRC = (()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32 = buf => { let c=0xFFFFFFFF; for(let i=0;i<buf.length;i++) c=CRC[(c^buf[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+  function zipStore(files){                 // minimal store-mode ZIP (no deps); PNGs are already compressed
+    const enc=new TextEncoder(), u16=v=>[v&255,(v>>>8)&255], u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+    const parts=[], central=[]; let offset=0;
+    for(const f of files){ const name=enc.encode(f.name), data=f.data, crc=crc32(data);
+      const lh=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+      parts.push(new Uint8Array(lh),name,data); central.push({name,crc,size:data.length,offset}); offset+=lh.length+name.length+data.length; }
+    const cdStart=offset;
+    for(const c of central){ const ch=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(c.crc),u32(c.size),u32(c.size),u16(c.name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(c.offset));
+      parts.push(new Uint8Array(ch),c.name); offset+=ch.length+c.name.length; }
+    const cdSize=offset-cdStart;
+    parts.push(new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(central.length),u16(central.length),u32(cdSize),u32(cdStart),u16(0))));
+    let len=0; for(const p of parts) len+=p.length; const out=new Uint8Array(len); let o=0; for(const p of parts){ out.set(p,o); o+=p.length; } return out;
   }
-  $("export").addEventListener("click", exportFrame);
+  function download(bytes,name,type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
+  function exportFrame(){
+    const [w,h]=EXPORT_RES[state.aspect]||[1920,1080]; const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+    createCanvasRenderer(cv).render({ ...state, effects:fxStack }, t);
+    cv.toBlob(b=>{ b.arrayBuffer().then(ab=>download(new Uint8Array(ab),"title_f"+String(Math.round(t*duration(state)*fps)).padStart(4,"0")+".png","image/png")); toast("PNG · "+w+"×"+h+" · Alpha"); },"image/png");
+  }
+  async function buildSequenceZip(opts={}){
+    const [w,h]=EXPORT_RES[state.aspect]||[1920,1080];
+    const total=opts.frames||Math.max(1,Math.min(900,Math.round(duration(state)*fps)));
+    const cv=document.createElement("canvas"); cv.width=w; cv.height=h; const r=createCanvasRenderer(cv); const files=[];
+    for(let i=0;i<total;i++){ const tt=total>1?i/(total-1):0; r.render({ ...state, effects:fxStack }, tt);
+      const blob=await new Promise(res=>cv.toBlob(res,"image/png")); files.push({ name:"title_"+String(i).padStart(4,"0")+".png", data:new Uint8Array(await blob.arrayBuffer()) });
+      if(opts.onProgress) opts.onProgress((i+1)/total); }
+    return { zip:zipStore(files), total, w, h };
+  }
+  let exporting=false;
+  async function exportSequence(){
+    if(exporting) return; exporting=true; stop();
+    try{ const { zip,total,w,h }=await buildSequenceZip({ onProgress:p=>toast("Exportiere Sequenz… "+Math.round(p*100)+"%") });
+      download(zip,"kinetic_title_"+w+"x"+h+"_"+fps+"fps_"+total+"f.zip","application/zip"); toast("ZIP · "+total+" Frames · "+w+"×"+h+" · Alpha"); }
+    catch(e){ toast("Export-Fehler: "+e.message); } finally{ exporting=false; }
+  }
+  $("export").addEventListener("click",e=>{ e.stopPropagation(); $("exportMenu").hidden=!$("exportMenu").hidden; });
+  document.addEventListener("click",()=>{ $("exportMenu").hidden=true; });
+  $("expSeq").addEventListener("click",()=>{ $("exportMenu").hidden=true; exportSequence(); });
+  $("expFrame").addEventListener("click",()=>{ $("exportMenu").hidden=true; exportFrame(); });
   /* QA/export handles */
-  window.createCanvasRenderer = createCanvasRenderer;
-  window.__exportState = () => ({ ...state, effects:fxStack });
-  window.__t = () => t;
+  window.createCanvasRenderer=createCanvasRenderer; window.__exportState=()=>({ ...state, effects:fxStack }); window.__t=()=>t; window.__buildSequenceZip=buildSequenceZip;
   addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT")return;
     if(e.code==="Space"){ e.preventDefault(); play(); }
     else if(e.key===","){ e.preventDefault(); stepFrame(-1); }
