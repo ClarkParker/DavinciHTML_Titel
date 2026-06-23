@@ -24,11 +24,12 @@ const strip = code => code
 const vendor   = read("app/vendor/animation-timeline.min.js");
 const engine   = strip(read("engine/engine.mjs"));
 const renderer = strip(read("engine/dom-renderer.mjs"));
+const canvasR  = strip(read("engine/canvas-renderer.mjs"));
 const inlined =
   `/* ====== vendored: animation-timeline-js v2.3.5 (MIT) — bundled for offline/self-contained use ====== */\n` +
   vendor + "\n" +
   `/* ====== inlined engine — DO NOT EDIT HERE; edit engine/*.mjs then run tools/build-app.mjs ====== */\n` +
-  engine + "\n" + renderer +
+  engine + "\n" + renderer + "\n" + canvasR +
   `\n/* ====== app ====== */`;
 
 let html = read("app/app.src.html");

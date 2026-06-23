@@ -265,6 +265,7 @@
 <script type="module">
   import { DEFAULT_STATE, duration, encodeSeed, variantFromSeed, clamp, EASE, EFFECTS, EFFECT_LIST } from "../engine/engine.mjs";
   import { createDomRenderer } from "../engine/dom-renderer.mjs";
+  import { createCanvasRenderer } from "../engine/canvas-renderer.mjs";
 
   const $ = id => document.getElementById(id);
   let state = { ...DEFAULT_STATE };
@@ -445,7 +446,21 @@
   $("kfNext").addEventListener("click",()=>jumpKeyframe(1));
   $("generate").addEventListener("click",()=>{ genBase=Math.floor(Math.random()*100000)+1; buildCards(); toast("9 neue Varianten · Seed-Basis "+genBase); });
   $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
-  $("export").addEventListener("click",()=>toast("Export (PNG-Seq · WebM-Alpha · OGraf) — kommt als Nächstes."));
+  const EXPORT_RES = { "16:9":[1920,1080], "9:16":[1080,1920], "1:1":[1080,1080] };
+  function exportFrame(){
+    const [w,h] = EXPORT_RES[state.aspect] || [1920,1080];
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    createCanvasRenderer(cv).render({ ...state, effects:fxStack }, t);
+    cv.toBlob(b=>{ if(!b){ toast("Export fehlgeschlagen"); return; }
+      const a=document.createElement("a"); a.href=URL.createObjectURL(b);
+      a.download = "title_f"+String(Math.round(t*duration(state)*fps)).padStart(3,"0")+".png"; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 2000); toast("PNG exportiert · "+w+"×"+h+" · Alpha"); }, "image/png");
+  }
+  $("export").addEventListener("click", exportFrame);
+  /* QA/export handles */
+  window.createCanvasRenderer = createCanvasRenderer;
+  window.__exportState = () => ({ ...state, effects:fxStack });
+  window.__t = () => t;
   addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT")return;
     if(e.code==="Space"){ e.preventDefault(); play(); }
     else if(e.key===","){ e.preventDefault(); stepFrame(-1); }
