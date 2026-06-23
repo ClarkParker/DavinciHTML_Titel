@@ -64,7 +64,14 @@ export function createDomRenderer(titleEl, accentEl) {
       el.style.filter = tk.blur > 0.01 ? `blur(${tk.blur}px)` : "";
       el.style.clipPath = (tk.clip != null && tk.clip < 0.999) ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "none";
     }
-    if (accentEl) accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
+    if (accentEl) {
+      const len = state.accentLen ?? 0.5, th = state.accentThick ?? 4, col = state.accentColor || "#EBDAB0", cap = state.accentCap || "taper";
+      accentEl.style.width = (len * 100) + "cqw";
+      accentEl.style.height = (th / 10.8).toFixed(3) + "cqh";
+      accentEl.style.background = cap === "taper" ? `linear-gradient(90deg,transparent,${col},${col},transparent)` : col;
+      accentEl.style.borderRadius = cap === "round" ? "999px" : "0";
+      accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
+    }
     return f;
   }
 

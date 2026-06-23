@@ -12,6 +12,13 @@ import { sampleFrame, EFFECTS } from "./engine.mjs";
 
 let FAM = '"Georgia", serif';
 
+function transparentOf(col){
+  if (col[0] === "#") { let h = col.slice(1); if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},0)`; }
+  const m = col.match(/rgba?\(([^)]+)\)/i); if (m) { const a = m[1].split(","); return `rgba(${a[0]|0},${a[1]|0},${a[2]|0},0)`; }
+  return "rgba(0,0,0,0)";
+}
+
 export function createCanvasRenderer(canvas) {
   const ctx = canvas.getContext("2d");
 
@@ -107,11 +114,14 @@ export function createCanvasRenderer(canvas) {
 
     // accent line
     if (f.accent > 0.001) {
-      const aw = Math.min(W * 0.42, 760) * f.accent, ay = H / 2 + (layoutBottom(f, px, H)) + px * 0.5;
-      const g = ctx.createLinearGradient(W / 2 - aw / 2, 0, W / 2 + aw / 2, 0);
-      g.addColorStop(0, "rgba(212,165,116,0)"); g.addColorStop(0.5, "#EBDAB0"); g.addColorStop(1, "rgba(212,165,116,0)");
-      ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = g;
-      ctx.fillRect(W / 2 - aw / 2, ay, aw, Math.max(2, H * 0.0028)); ctx.restore();
+      const len = state.accentLen ?? 0.5, th = state.accentThick ?? 4, col = state.accentColor || "#EBDAB0", cap = state.accentCap || "taper";
+      const aw = W * len * f.accent, thick = Math.max(1, th * H / 1080), ax = W / 2 - aw / 2, ay = H / 2 + layoutBottom(f, px, H) + px * 0.5;
+      ctx.save(); ctx.globalAlpha = 1;
+      if (cap === "taper") { const tc = transparentOf(col), g = ctx.createLinearGradient(ax, 0, ax + aw, 0); g.addColorStop(0, tc); g.addColorStop(0.5, col); g.addColorStop(1, tc); ctx.fillStyle = g; }
+      else ctx.fillStyle = col;
+      if (cap === "round" && ctx.roundRect) { ctx.beginPath(); ctx.roundRect(ax, ay - thick / 2, aw, thick, thick / 2); ctx.fill(); }
+      else ctx.fillRect(ax, ay - thick / 2, aw, thick);
+      ctx.restore();
     }
     return f;
   }

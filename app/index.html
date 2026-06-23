@@ -145,6 +145,7 @@
   .chex{flex:1;min-width:0;background:var(--elevated);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:6px 8px;text-transform:uppercase}
   .caval{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
   .calpha{width:100%;accent-color:var(--gold)}
+  .field label.mt{margin-top:10px}
   .sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
   .sw.on{border-color:#fff}
   /* visual pickers */
@@ -304,6 +305,12 @@
         <div class="field"><label>Color</label><div class="cpick" id="fontColor"></div></div>
         <div class="field"><label>Accent line <b id="accentV">On</b></label>
           <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
+        <div class="field" id="accentOpts">
+          <label>Length <b id="accentLenV">50%</b></label><input type="range" id="accentLen" min="0.1" max="1" step="0.01" value="0.5">
+          <label class="mt">Thickness <b id="accentThickV">4</b></label><input type="range" id="accentThick" min="1" max="14" step="0.5" value="4">
+          <label class="mt">Ends</label><div class="seg wrap" id="accentCap"><button data-v="taper" class="on">Taper</button><button data-v="flat">Flat</button><button data-v="round">Round</button></div>
+          <label class="mt">Accent color</label><div class="cpick" id="accentColor"></div>
+        </div>
       </div>
       <div class="cgroup"><h4>Effects</h4>
         <div class="fxadd" id="fxAdd"></div>
@@ -403,6 +410,7 @@ const DEFAULT_STATE = {
   animIn: "maskRise", animOut: "fadeSink", ease: "outExpo",
   stagger: 0.6, inDur: 0.8, hold: 1.4, outDur: 0.7,
   weight: 700, color: "#F4EFE6", accent: true, font: "Georgia",
+  accentLen: 0.5, accentThick: 4, accentColor: "#EBDAB0", accentCap: "taper",
   aspect: "16:9",
 };
 
@@ -473,7 +481,7 @@ function sampleFrame(state, t) {
 }
 
 /* ---- Pillar 3: Seed = the whole look ↔ a compact, shareable string ---- */
-const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","color","accent","font","aspect"];
+const SEED_KEYS = ["line","unit","order","animIn","animOut","ease","stagger","inDur","hold","outDur","weight","color","accent","accentLen","accentThick","accentColor","accentCap","font","aspect"];
 const b64u = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const ub64 = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
 function encodeSeed(state) {
@@ -569,7 +577,14 @@ function createDomRenderer(titleEl, accentEl) {
       el.style.filter = tk.blur > 0.01 ? `blur(${tk.blur}px)` : "";
       el.style.clipPath = (tk.clip != null && tk.clip < 0.999) ? `inset(${((1 - tk.clip) * 100).toFixed(2)}% 0 0 0)` : "none";
     }
-    if (accentEl) accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
+    if (accentEl) {
+      const len = state.accentLen ?? 0.5, th = state.accentThick ?? 4, col = state.accentColor || "#EBDAB0", cap = state.accentCap || "taper";
+      accentEl.style.width = (len * 100) + "cqw";
+      accentEl.style.height = (th / 10.8).toFixed(3) + "cqh";
+      accentEl.style.background = cap === "taper" ? `linear-gradient(90deg,transparent,${col},${col},transparent)` : col;
+      accentEl.style.borderRadius = cap === "round" ? "999px" : "0";
+      accentEl.style.transform = `scaleX(${f.accent.toFixed(4)})`;
+    }
     return f;
   }
 
@@ -589,6 +604,13 @@ function createDomRenderer(titleEl, accentEl) {
 
 
 let FAM = '"Georgia", serif';
+
+function transparentOf(col){
+  if (col[0] === "#") { let h = col.slice(1); if (h.length === 3) h = h.split("").map(c => c + c).join("");
+    return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},0)`; }
+  const m = col.match(/rgba?\(([^)]+)\)/i); if (m) { const a = m[1].split(","); return `rgba(${a[0]|0},${a[1]|0},${a[2]|0},0)`; }
+  return "rgba(0,0,0,0)";
+}
 
 function createCanvasRenderer(canvas) {
   const ctx = canvas.getContext("2d");
@@ -685,11 +707,14 @@ function createCanvasRenderer(canvas) {
 
     // accent line
     if (f.accent > 0.001) {
-      const aw = Math.min(W * 0.42, 760) * f.accent, ay = H / 2 + (layoutBottom(f, px, H)) + px * 0.5;
-      const g = ctx.createLinearGradient(W / 2 - aw / 2, 0, W / 2 + aw / 2, 0);
-      g.addColorStop(0, "rgba(212,165,116,0)"); g.addColorStop(0.5, "#EBDAB0"); g.addColorStop(1, "rgba(212,165,116,0)");
-      ctx.save(); ctx.globalAlpha = 1; ctx.fillStyle = g;
-      ctx.fillRect(W / 2 - aw / 2, ay, aw, Math.max(2, H * 0.0028)); ctx.restore();
+      const len = state.accentLen ?? 0.5, th = state.accentThick ?? 4, col = state.accentColor || "#EBDAB0", cap = state.accentCap || "taper";
+      const aw = W * len * f.accent, thick = Math.max(1, th * H / 1080), ax = W / 2 - aw / 2, ay = H / 2 + layoutBottom(f, px, H) + px * 0.5;
+      ctx.save(); ctx.globalAlpha = 1;
+      if (cap === "taper") { const tc = transparentOf(col), g = ctx.createLinearGradient(ax, 0, ax + aw, 0); g.addColorStop(0, tc); g.addColorStop(0.5, col); g.addColorStop(1, tc); ctx.fillStyle = g; }
+      else ctx.fillStyle = col;
+      if (cap === "round" && ctx.roundRect) { ctx.beginPath(); ctx.roundRect(ax, ay - thick / 2, aw, thick, thick / 2); ctx.fill(); }
+      else ctx.fillRect(ax, ay - thick / 2, aw, thick);
+      ctx.restore();
     }
     return f;
   }
@@ -822,7 +847,10 @@ function createCanvasRenderer(canvas) {
   function syncControls(){
     markPick("animInPick",state.animIn); markPick("animOutPick",state.animOut); markPick("easePick",state.ease);
     setSeg("unit",state.unit); setSeg("order",state.order); setSeg("aspect",state.aspect);
-    setSeg("accentToggle", state.accent?"1":"0"); $("accentV").textContent=state.accent?"On":"Off";
+    setSeg("accentToggle", state.accent?"1":"0"); $("accentV").textContent=state.accent?"On":"Off"; $("accentOpts").style.display=state.accent?"":"none";
+    $("accentLen").value=state.accentLen; $("accentLenV").textContent=Math.round(state.accentLen*100)+"%";
+    $("accentThick").value=state.accentThick; $("accentThickV").textContent=state.accentThick;
+    setSeg("accentCap", state.accentCap); if(accentColorPicker) accentColorPicker.set(state.accentColor);
     $("stagger").value=state.stagger; $("staggerV").textContent=(+state.stagger).toFixed(2);
     $("inDur").value=state.inDur;   $("inV").textContent=(+state.inDur).toFixed(2)+"s";
     $("hold").value=state.hold;     $("holdV").textContent=(+state.hold).toFixed(1)+"s";
@@ -879,7 +907,10 @@ function createCanvasRenderer(canvas) {
   markPick("animInPick",state.animIn); markPick("animOutPick",state.animOut); markPick("easePick",state.ease);
   seg("unit",v=>{ state.unit=v; draw(); });
   seg("order",v=>{ state.order=v; draw(); });
-  seg("accentToggle",v=>{ state.accent=v==="1"; $("accentV").textContent=state.accent?"On":"Off"; draw(); });
+  seg("accentToggle",v=>{ state.accent=v==="1"; $("accentV").textContent=state.accent?"On":"Off"; $("accentOpts").style.display=state.accent?"":"none"; draw(); });
+  $("accentLen").addEventListener("input",e=>{ state.accentLen=+e.target.value; $("accentLenV").textContent=Math.round(state.accentLen*100)+"%"; draw(); });
+  $("accentThick").addEventListener("input",e=>{ state.accentThick=+e.target.value; $("accentThickV").textContent=state.accentThick; draw(); });
+  seg("accentCap",v=>{ state.accentCap=v; draw(); });
   $("stagger").addEventListener("input",e=>{ state.stagger=+e.target.value; $("staggerV").textContent=state.stagger.toFixed(2); draw(); });
   $("inDur").addEventListener("input",e=>{ state.inDur=+e.target.value; $("inV").textContent=state.inDur.toFixed(2)+"s"; draw(true); });
   $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(true); });
@@ -988,7 +1019,7 @@ function createCanvasRenderer(canvas) {
     "Verdana","Trebuchet MS","Tahoma","Inter","Roboto","Montserrat","Poppins","Lato","Open Sans","Space Grotesk",
     "Consolas","Menlo","Monaco","Courier New","Brush Script MT","Pacifico","Lobster","Comic Sans MS",
     "serif","sans-serif","monospace"];
-  let uploadedFonts = [], upN = 0, systemFonts = [], fontAccessState = "idle", fontCount = 0, fontColorPicker = null;
+  let uploadedFonts = [], upN = 0, systemFonts = [], fontAccessState = "idle", fontCount = 0, fontColorPicker = null, accentColorPicker = null;
   const _fc = document.createElement("canvas").getContext("2d");
   function fontAvailable(name){                              // reliable measureText probe
     if(/^(serif|sans-serif|monospace)$/i.test(name)) return true;
@@ -1076,6 +1107,7 @@ function createCanvasRenderer(canvas) {
   }
   function init(){ buildFontPicker(); buildFxAdd(); buildCards();
     fontColorPicker = colorPicker($("fontColor"), state.color, v=>{ state.color=v; draw(); });
+    accentColorPicker = colorPicker($("accentColor"), state.accentColor, v=>{ state.accentColor=v; draw(); });
     draw(true);
     [...document.querySelectorAll(".controls .cgroup h4")].forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("collapsed")));
     window.__ready=true; }
