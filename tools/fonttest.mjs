@@ -21,7 +21,8 @@ await wait(1300);
 const setName = (sel, v) => page.evaluate(([s, val]) => { const el = document.querySelector(s); el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }, [sel, v]);
 
 const chips = await page.evaluate(() => document.querySelectorAll('#fontPick .fontchip').length);
-const status = await page.evaluate(() => document.getElementById('fontStatus').textContent);
+const status = await page.evaluate(() => document.getElementById('fontAccess').textContent);
+const browse = await page.evaluate(() => ({ hasAPI: 'queryLocalFonts' in window, btn: !!document.getElementById('fontBrowse') }));
 
 await setName('#fontName', 'monospace'); await wait(60);
 const foundGeneric = await page.evaluate(() => document.getElementById('fontFound').textContent);
@@ -34,12 +35,12 @@ const after = await page.evaluate(() => ({
   fam: document.getElementById('title').style.fontFamily
 }));
 
-console.log('chips:', chips, '| status:', JSON.stringify(status));
+console.log('chips:', chips, '| browse btn:', browse.btn, '| API:', browse.hasAPI, '| status:', JSON.stringify(status));
 console.log('type "monospace":', JSON.stringify(foundGeneric), '| type bogus:', JSON.stringify(foundBogus));
 console.log('after click monospace → state.font:', after.font, '| title fontFamily:', after.fam);
 console.log('errors:', errs.length ? errs.join(' | ') : 'none');
 const ok = chips >= 18 && /found/.test(foundGeneric) && /not installed/.test(foundBogus) &&
-           after.font === 'monospace' && /monospace/.test(after.fam) && !errs.length;
+           after.font === 'monospace' && /monospace/.test(after.fam) && (!browse.hasAPI || browse.btn) && !errs.length;
 console.log(ok ? 'PASS ✓ font picker works' : 'FAIL ✗');
 await browser.close();
 process.exit(ok ? 0 : 1);

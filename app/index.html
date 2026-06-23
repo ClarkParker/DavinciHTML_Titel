@@ -169,7 +169,7 @@
   .fxsw{display:flex;gap:6px}
   /* font picker */
   .fonthint{font-weight:400;font-size:9.5px;color:var(--faint);text-transform:none;letter-spacing:0}
-  .fontpick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+  .fontpick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;max-height:148px;overflow-y:auto}
   .fontchip{font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 9px;color:var(--txt);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.25}
   .fontchip:hover{border-color:var(--gold)}
   .fontchip.on{border-color:var(--gold);color:var(--gold)}
@@ -181,6 +181,12 @@
   .fontupload{display:block;text-align:center;font-size:11.5px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:9px;cursor:pointer}
   .fontupload:hover,.fontupload.drag{border-color:var(--gold);color:var(--gold);background:rgba(212,165,116,.07)}
   .linklike{color:var(--gold);background:none;border:none;font:inherit;font-size:9.5px;cursor:pointer;padding:0;text-decoration:underline}
+  .fontaccess{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+  .fontbtn{font-size:11.5px;color:var(--gold);border:1px solid var(--line);border-radius:8px;padding:5px 10px;display:inline-flex;align-items:center;gap:6px;background:rgba(212,165,116,.06)}
+  .fontbtn:hover{border-color:var(--gold);background:rgba(212,165,116,.14)}
+  .famhint{font-size:9.5px;color:var(--faint);flex:1;min-width:100%}
+  .famhint.ok{color:#8fd3a6}
+  .famhint.warn{color:#e0b67a}
 
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--elevated);
     border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:12.5px;color:var(--txt);
@@ -267,7 +273,8 @@
         <div class="field"><label>Out <b id="outV">0.70s</b></label><input type="range" id="outDur" min="0.2" max="2" step="0.05" value="0.7"></div>
       </div>
       <div class="cgroup"><h4>Type</h4>
-        <div class="field"><label>Font <span id="fontStatus" class="fonthint"></span></label>
+        <div class="field"><label>Font</label>
+          <div class="fontaccess" id="fontAccess"></div>
           <div class="fontpick" id="fontPick"></div>
           <div class="fontrow"><input id="fontName" list="fontList" placeholder="Type a font name…" spellcheck="false" autocomplete="off"><span id="fontFound" class="fontfound"></span></div>
           <datalist id="fontList"></datalist>
@@ -961,10 +968,15 @@ function createCanvasRenderer(canvas) {
     });
   }
   /* ---------- Fonts: system quick-picks + type-a-name + drag-drop upload (FontFace) ---------- */
-  const COMMON_FONTS = ["Georgia","Times New Roman","Palatino Linotype","Garamond","Baskerville",
-    "Arial","Helvetica","Helvetica Neue","Inter","Verdana","Trebuchet MS","Tahoma","Gill Sans",
-    "Futura","Impact","Oswald","Courier New","serif","sans-serif","monospace"];
-  let uploadedFonts = [], upN = 0, systemFonts = [];
+  const COMMON_FONTS = [
+    "Impact","Anton","Bebas Neue","Oswald","Archivo Black","Futura","Haettenschweiler","Arial Black",
+    "Franklin Gothic","Bodoni MT","Didot","Rockwell","Copperplate","Abril Fatface","Bricolage Grotesque",
+    "Georgia","Times New Roman","Palatino Linotype","Book Antiqua","Garamond","Baskerville","Cambria","Constantia","Playfair Display",
+    "Arial","Helvetica","Helvetica Neue","Segoe UI","Calibri","Candara","Century Gothic","Gill Sans","Optima","Avenir","Avenir Next",
+    "Verdana","Trebuchet MS","Tahoma","Inter","Roboto","Montserrat","Poppins","Lato","Open Sans","Space Grotesk",
+    "Consolas","Menlo","Monaco","Courier New","Brush Script MT","Pacifico","Lobster","Comic Sans MS",
+    "serif","sans-serif","monospace"];
+  let uploadedFonts = [], upN = 0, systemFonts = [], fontAccessState = "idle", fontCount = 0;
   const _fc = document.createElement("canvas").getContext("2d");
   function fontAvailable(name){                              // reliable measureText probe
     if(/^(serif|sans-serif|monospace)$/i.test(name)) return true;
@@ -984,14 +996,22 @@ function createCanvasRenderer(canvas) {
       if(ok) c.addEventListener("click",()=>selectFont(fam));
       host.appendChild(c);
     });
-    if("queryLocalFonts" in window){ $("fontStatus").innerHTML='· <button id="fontBrowse" class="linklike">browse installed…</button>'; $("fontBrowse").onclick=browseFonts; }
-    else $("fontStatus").textContent="· can't list installed fonts here — type a name or upload";
+    renderFontAccess();
   }
-  async function browseFonts(){                              // ④ Local Font Access (Chromium/CEF, when available)
+  function renderFontAccess(){
+    const host=$("fontAccess");
+    if(!("queryLocalFonts" in window)){ host.innerHTML='<span class="famhint">Installed fonts cannot be listed here — type the exact name or upload a file.</span>'; return; }
+    const hint = fontAccessState==="loaded" ? '<span class="famhint ok">'+fontCount+' system fonts loaded — type to search</span>'
+               : fontAccessState==="denied" ? '<span class="famhint warn">Access denied — type the exact name or upload a file (you can try again).</span>'
+               : '<span class="famhint">Uses your installed OS fonts.</span>';
+    host.innerHTML='<button id="fontBrowse" class="fontbtn">&#9906; Browse installed fonts</button>'+hint;
+    $("fontBrowse").onclick=browseFonts;
+  }
+  async function browseFonts(){                              // Local Font Access API (Chromium/CEF, when available)
     try{ const fonts=await window.queryLocalFonts(); systemFonts=[...new Set(fonts.map(f=>f.family))].sort((a,b)=>a.localeCompare(b));
       $("fontList").innerHTML=systemFonts.map(f=>'<option value="'+f.replace(/"/g,"&quot;")+'">').join("");
-      $("fontStatus").textContent="· "+systemFonts.length+" installed fonts — type to search"; toast(systemFonts.length+" system fonts loaded"); }
-    catch(err){ toast("Couldn't access fonts: "+err.message); }
+      fontAccessState="loaded"; fontCount=systemFonts.length; renderFontAccess(); toast(systemFonts.length+" system fonts loaded"); }
+    catch(err){ fontAccessState="denied"; renderFontAccess(); toast("Font access denied — type a name or upload"); }
   }
   $("fontName").addEventListener("input",e=>{ const v=e.target.value.trim(), el=$("fontFound");
     if(!v){ el.textContent=""; el.className="fontfound"; return; }
