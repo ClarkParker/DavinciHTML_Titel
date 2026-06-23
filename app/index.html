@@ -136,6 +136,15 @@
   select{width:100%;background:var(--elevated);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:13px}
   input[type=range]{width:100%;accent-color:var(--gold)}
   .swatches{display:flex;gap:7px}
+  .cpick{display:flex;flex-direction:column;gap:7px}
+  .cpresets{display:flex;gap:6px;flex-wrap:wrap}
+  .crow{display:flex;align-items:center;gap:7px}
+  .cnative{width:32px;height:28px;padding:0;border:1px solid var(--line);border-radius:7px;background:none;cursor:pointer}
+  .cnative::-webkit-color-swatch{border:none;border-radius:5px}
+  .cnative::-webkit-color-swatch-wrapper{padding:2px}
+  .chex{flex:1;min-width:0;background:var(--elevated);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:6px 8px;text-transform:uppercase}
+  .caval{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+  .calpha{width:100%;accent-color:var(--gold)}
   .sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer}
   .sw.on{border-color:#fff}
   /* visual pickers */
@@ -292,13 +301,7 @@
           <label class="fontupload" id="fontDrop">⬆ Drop a font file — or click<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden></label>
         </div>
         <div class="field"><label>Weight <b id="weightV">700</b></label><input type="range" id="weight" min="300" max="800" step="10" value="700"></div>
-        <div class="field"><label>Color</label>
-          <div class="swatches" id="colors">
-            <span class="sw on" style="background:#F4EFE6" data-c="#F4EFE6"></span>
-            <span class="sw" style="background:#EBDAB0" data-c="#EBDAB0"></span>
-            <span class="sw" style="background:#D4A574" data-c="#D4A574"></span>
-            <span class="sw" style="background:#ff9ec4" data-c="#ff9ec4"></span>
-            <span class="sw" style="background:#7cd4ff" data-c="#7cd4ff"></span></div></div>
+        <div class="field"><label>Color</label><div class="cpick" id="fontColor"></div></div>
         <div class="field"><label>Accent line <b id="accentV">On</b></label>
           <div class="seg wrap" id="accentToggle"><button data-v="1" class="on">On</button><button data-v="0">Off</button></div></div>
       </div>
@@ -825,7 +828,7 @@ function createCanvasRenderer(canvas) {
     $("hold").value=state.hold;     $("holdV").textContent=(+state.hold).toFixed(1)+"s";
     $("outDur").value=state.outDur; $("outV").textContent=(+state.outDur).toFixed(2)+"s";
     $("weight").value=state.weight; $("weightV").textContent=state.weight;
-    [...$("colors").children].forEach(s=>s.classList.toggle("on", s.dataset.c===state.color));
+    if(fontColorPicker) fontColorPicker.set(state.color);
     markFontActive(state.font); $("fontName").value="";
   }
 
@@ -882,8 +885,7 @@ function createCanvasRenderer(canvas) {
   $("hold").addEventListener("input",e=>{ state.hold=+e.target.value; $("holdV").textContent=state.hold.toFixed(1)+"s"; draw(true); });
   $("outDur").addEventListener("input",e=>{ state.outDur=+e.target.value; $("outV").textContent=state.outDur.toFixed(2)+"s"; draw(true); });
   $("weight").addEventListener("input",e=>{ state.weight=+e.target.value; $("weightV").textContent=state.weight; draw(); });
-  $("colors").addEventListener("click",e=>{ const s=e.target.closest(".sw"); if(!s)return;
-    [...$("colors").children].forEach(x=>x.classList.remove("on")); s.classList.add("on"); state.color=s.dataset.c; draw(); });
+  /* font colour is wired via the colour picker (init) */
   $("play").addEventListener("click",play);
   $("loop").addEventListener("click",()=>{ loop=!loop; $("loop").classList.toggle("on",loop); });
   $("toStart").addEventListener("click",()=>{ stop(); t=0; draw(false); });
@@ -969,9 +971,8 @@ function createCanvasRenderer(canvas) {
           const inp=f.querySelector("input"), b=f.querySelector("b"); inp.value=fx.params[pm.key]; b.textContent=fmtVal(fx.params[pm.key],pm);
           inp.addEventListener("input",e=>{ fx.params[pm.key]=+e.target.value; b.textContent=fmtVal(fx.params[pm.key],pm); renderStage(); });
         } else if(pm.type==="color"){
-          f.innerHTML=`<label>${pm.label}</label><div class="fxsw"></div>`; const sw=f.querySelector(".fxsw");
-          ["#F4EFE6","#EBDAB0","#D4A574","#ff9ec4","#7cd4ff"].forEach(c=>{ const s=document.createElement("span"); s.className="sw"+(c===fx.params[pm.key]?" on":""); s.style.background=c;
-            s.addEventListener("click",()=>{ fx.params[pm.key]=c; [...sw.children].forEach(x=>x.classList.remove("on")); s.classList.add("on"); renderStage(); }); sw.appendChild(s); });
+          f.innerHTML=`<label>${pm.label}</label><div class="cpick"></div>`;
+          colorPicker(f.querySelector(".cpick"), fx.params[pm.key], v=>{ fx.params[pm.key]=v; renderStage(); });
         }
         card.appendChild(f);
       });
@@ -987,7 +988,7 @@ function createCanvasRenderer(canvas) {
     "Verdana","Trebuchet MS","Tahoma","Inter","Roboto","Montserrat","Poppins","Lato","Open Sans","Space Grotesk",
     "Consolas","Menlo","Monaco","Courier New","Brush Script MT","Pacifico","Lobster","Comic Sans MS",
     "serif","sans-serif","monospace"];
-  let uploadedFonts = [], upN = 0, systemFonts = [], fontAccessState = "idle", fontCount = 0;
+  let uploadedFonts = [], upN = 0, systemFonts = [], fontAccessState = "idle", fontCount = 0, fontColorPicker = null;
   const _fc = document.createElement("canvas").getContext("2d");
   function fontAvailable(name){                              // reliable measureText probe
     if(/^(serif|sans-serif|monospace)$/i.test(name)) return true;
@@ -1048,7 +1049,34 @@ function createCanvasRenderer(canvas) {
   ["dragleave","dragend"].forEach(ev=>$("fontDrop").addEventListener(ev,e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); }));
   $("fontDrop").addEventListener("drop",e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) loadFontFile(f); });
 
-  function init(){ buildFontPicker(); buildFxAdd(); buildCards(); draw(true);
+  /* ---------- reusable colour picker: presets + native spectrum + hex + alpha ---------- */
+  const C_PRESETS = ["#F4EFE6","#EBDAB0","#D4A574","#ff9ec4","#7cd4ff","#ff5a5f","#9b6bff","#000000","#ffffff"];
+  const _h2 = n => Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,"0");
+  const toHexRGB = c => "#"+_h2(c.r)+_h2(c.g)+_h2(c.b);
+  const toCss = c => c.a>=1 ? toHexRGB(c) : "rgba("+Math.round(c.r)+","+Math.round(c.g)+","+Math.round(c.b)+","+(+c.a.toFixed(3))+")";
+  function parseColor(s){ s=(s||"").trim(); const hx=v=>parseInt(v,16);
+    if(/^#?[0-9a-fA-F]{3,8}$/.test(s)){ let h=s.replace(/^#/,""); if(h.length===3) h=h.split("").map(c=>c+c).join("");
+      if(h.length>=6) return {r:hx(h.slice(0,2)),g:hx(h.slice(2,4)),b:hx(h.slice(4,6)),a:h.length>=8?hx(h.slice(6,8))/255:1}; }
+    const m=s.match(/rgba?\(([^)]+)\)/i); if(m){ const a=m[1].split(",").map(parseFloat); return {r:a[0]|0,g:a[1]|0,b:a[2]|0,a:a[3]==null?1:a[3]}; }
+    return {r:244,g:239,b:230,a:1};
+  }
+  function colorPicker(host, initial, onChange){
+    let cur=parseColor(initial);
+    host.innerHTML='<div class="cpresets"></div><div class="crow"><input type="color" class="cnative"><input type="text" class="chex" spellcheck="false" maxlength="9"><span class="caval"></span></div><input type="range" class="calpha" min="0" max="100">';
+    const presets=host.querySelector(".cpresets"), nat=host.querySelector(".cnative"), hex=host.querySelector(".chex"), av=host.querySelector(".caval"), al=host.querySelector(".calpha");
+    C_PRESETS.forEach(c=>{ const s=document.createElement("span"); s.className="sw"; s.style.background=c; s.dataset.c=c;
+      s.addEventListener("click",()=>{ const p=parseColor(c); cur={r:p.r,g:p.g,b:p.b,a:cur.a}; emit(); }); presets.appendChild(s); });
+    nat.addEventListener("input",()=>{ const p=parseColor(nat.value); cur={r:p.r,g:p.g,b:p.b,a:cur.a}; emit(); });
+    hex.addEventListener("change",()=>{ cur=parseColor(hex.value); emit(); });
+    al.addEventListener("input",()=>{ cur={...cur,a:al.value/100}; emit(); });
+    function emit(){ onChange(toCss(cur)); refresh(); }
+    function refresh(){ nat.value=toHexRGB(cur); hex.value=cur.a>=1?toHexRGB(cur):toHexRGB(cur)+_h2(cur.a*255); av.textContent=Math.round(cur.a*100)+"%"; al.value=Math.round(cur.a*100);
+      [...presets.children].forEach(s=>s.classList.toggle("on", s.dataset.c.toLowerCase()===toHexRGB(cur).toLowerCase())); }
+    refresh(); return { set(v){ cur=parseColor(v); refresh(); } };
+  }
+  function init(){ buildFontPicker(); buildFxAdd(); buildCards();
+    fontColorPicker = colorPicker($("fontColor"), state.color, v=>{ state.color=v; draw(); });
+    draw(true);
     [...document.querySelectorAll(".controls .cgroup h4")].forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("collapsed")));
     window.__ready=true; }
   document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();

@@ -27,7 +27,7 @@ const q = sel => page.evaluate(s => {
     cards: document.querySelectorAll('#fxStack .fxcard').length,
     shadow: getComputedStyle(document.getElementById('title')).textShadow,
     ranges: document.querySelectorAll('#fxStack .fxcard input[type=range]').length,
-    sw: document.querySelectorAll('#fxStack .fxcard .fxsw .sw').length,
+    cpick: !!document.querySelector('#fxStack .fxcard .cpick .cnative'),
     tok0: t ? t.style.transform : ''
   };
 }, sel);
@@ -46,11 +46,11 @@ const d = await q();
 const box = await page.evaluate(() => { const r = document.querySelector('.controls').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: Math.min(r.height, 1000) }; });
 await page.screenshot({ path: '../app/shots/effects.png', clip: box });
 
-console.log('chips:', chips, '| after Glow:', JSON.stringify({ cards: g.cards, shadowOn, ranges: g.ranges, sw: g.sw }));
+console.log('chips:', chips, '| after Glow:', JSON.stringify({ cards: g.cards, shadowOn, ranges: g.ranges, cpick: g.cpick }));
 console.log('shadow base:', baseShadow, '| glow on:', g.shadow, '| off==base:', offShadow === baseShadow, '| Drift cards:', d.cards);
 console.log('token transform base:', baseTok, '-> drift:', d.tok0, '| changed:', baseTok !== d.tok0);
 console.log('errors:', errs.length ? errs.join(' | ') : 'none');
-const ok = chips === 3 && g.cards === 1 && shadowOn && g.ranges === 1 && g.sw === 5 &&
+const ok = chips === 3 && g.cards === 1 && shadowOn && g.ranges >= 1 && g.cpick &&
            offShadow === baseShadow && d.cards === 2 && baseTok !== d.tok0 && !errs.length;
 console.log(ok ? 'PASS ✓ effects registry drives panel + engine' : 'FAIL ✗');
 await browser.close();
