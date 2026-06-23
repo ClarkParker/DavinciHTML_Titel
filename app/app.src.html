@@ -57,6 +57,10 @@
   .exportmenu[hidden]{display:none}
   .exportmenu button{display:block;width:100%;text-align:left;font-size:12.5px;color:var(--txt);padding:8px 10px;border-radius:7px;white-space:nowrap}
   .exportmenu button:hover{background:rgba(212,165,116,.14);color:var(--gold)}
+  .expres{padding:8px 9px 10px;border-bottom:1px solid var(--hair);margin-bottom:4px}
+  .expreslabel{display:flex;justify-content:space-between;align-items:baseline;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .expreslabel b{color:var(--gold);font-family:var(--mono);font-weight:600;letter-spacing:0;text-transform:none;font-size:11.5px}
+  .expcustom{margin-top:8px;justify-content:flex-start}.expcustom[hidden]{display:none}
 
   /* ---------- library ---------- */
   .lib{border-right:1px solid var(--hair);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;
@@ -229,6 +233,11 @@
     <div class="exportwrap">
       <button class="btn gold" id="export">⬇ Export</button>
       <div class="exportmenu" id="exportMenu" hidden>
+        <div class="expres">
+          <div class="expreslabel">Resolution <b id="expResOut">1920×1080</b></div>
+          <div class="seg wrap" id="exportScale"><button data-v="0.5">0.5×</button><button data-v="1" class="on">1×</button><button data-v="2">2×</button><button data-v="custom">Custom</button></div>
+          <label class="tset expcustom" id="expCustomWrap" hidden>scale <input id="expCustom" type="number" min="0.1" max="8" step="0.1" value="1">×</label>
+        </div>
         <button id="expSeq">⬇ PNG sequence (ZIP) · alpha</button>
         <button id="expFrame">⬇ Current frame (PNG)</button>
       </div>
@@ -333,7 +342,7 @@
   let t = 0.5, playing = false, raf = 0, last = 0, loop = true, lockBeats = false;
   let fxStack = [];   // active effect stack — persists across style/variant changes
   let genBase = 1, favorites = new Set();
-  let fps = 30; const curDur = () => duration(state);
+  let fps = 30, exportScale = 1; const curDur = () => duration(state);
   const stageR = createDomRenderer($("title"), $("accent"));
 
   /* ---- professional timeline: animation-timeline-js (MIT), themed + wired to the engine ---- */
@@ -387,7 +396,8 @@
     const f = stageR.render({ ...state, effects: fxStack }, t);
     $("tc").innerHTML = f.timeSec.toFixed(2)+"<small>/"+f.dur.toFixed(2)+"s</small>";
     $("tframe").textContent = "f"+Math.round(f.timeSec*fps);
-    $("badge").textContent = ({"16:9":"1920×1080","9:16":"1080×1920","1:1":"1080×1080"}[state.aspect])+" · "+fps+"fps · alpha";
+    const [bw,bh]=exportRes(); $("badge").textContent = bw+"×"+bh+" · "+fps+"fps · alpha";
+    $("expResOut").textContent = bw+"×"+bh;
     if(document.activeElement!==$("frames")) $("frames").value = Math.max(1,Math.round(f.dur*fps));
   }
   function draw(rebuild){ if(rebuild) rebuildTimeline(); renderStage(); TL.setTime(t*curDur()*1000); }
@@ -519,6 +529,8 @@
   $("more").addEventListener("click",()=>{ genBase++; buildCards(); });
   /* ---------- Export: alpha PNG (frame) + PNG-sequence ZIP (the Resolve workflow) ---------- */
   const EXPORT_RES = { "16:9":[1920,1080], "9:16":[1080,1920], "1:1":[1080,1080] };
+  /* output pixel size = aspect base × exportScale (resolution-independent engine → just more pixels) */
+  const exportRes = () => { const b = EXPORT_RES[state.aspect] || [1920,1080]; return [Math.round(b[0]*exportScale), Math.round(b[1]*exportScale)]; };
   const CRC = (()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
   const crc32 = buf => { let c=0xFFFFFFFF; for(let i=0;i<buf.length;i++) c=CRC[(c^buf[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
   function zipStore(files){                 // minimal store-mode ZIP (no deps); PNGs are already compressed
@@ -536,12 +548,12 @@
   }
   function download(bytes,name,type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([bytes],{type})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
   function exportFrame(){
-    const [w,h]=EXPORT_RES[state.aspect]||[1920,1080]; const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+    const [w,h]=exportRes(); const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
     createCanvasRenderer(cv).render({ ...state, effects:fxStack }, t);
     cv.toBlob(b=>{ b.arrayBuffer().then(ab=>download(new Uint8Array(ab),"title_f"+String(Math.round(t*duration(state)*fps)).padStart(4,"0")+".png","image/png")); toast("PNG · "+w+"×"+h+" · alpha"); },"image/png");
   }
   async function buildSequenceZip(opts={}){
-    const [w,h]=EXPORT_RES[state.aspect]||[1920,1080];
+    const [w,h]=exportRes();
     const total=opts.frames||Math.max(1,Math.min(900,Math.round(duration(state)*fps)));
     const cv=document.createElement("canvas"); cv.width=w; cv.height=h; const r=createCanvasRenderer(cv); const files=[];
     for(let i=0;i<total;i++){ const tt=total>1?i/(total-1):0; r.render({ ...state, effects:fxStack }, tt);
@@ -558,10 +570,14 @@
   }
   $("export").addEventListener("click",e=>{ e.stopPropagation(); $("exportMenu").hidden=!$("exportMenu").hidden; });
   document.addEventListener("click",()=>{ $("exportMenu").hidden=true; });
+  $("exportMenu").addEventListener("click",e=>e.stopPropagation());   // keep menu open while picking resolution
+  seg("exportScale",v=>{ const custom=v==="custom"; $("expCustomWrap").hidden=!custom;
+    exportScale = custom ? clamp(+$("expCustom").value||1, 0.1, 8) : +v; draw(); });
+  $("expCustom").addEventListener("input",e=>{ exportScale=clamp(+e.target.value||1, 0.1, 8); draw(); });
   $("expSeq").addEventListener("click",()=>{ $("exportMenu").hidden=true; exportSequence(); });
   $("expFrame").addEventListener("click",()=>{ $("exportMenu").hidden=true; exportFrame(); });
   /* QA/export handles */
-  window.createCanvasRenderer=createCanvasRenderer; window.__exportState=()=>({ ...state, effects:fxStack }); window.__t=()=>t; window.__buildSequenceZip=buildSequenceZip;
+  window.createCanvasRenderer=createCanvasRenderer; window.__exportState=()=>({ ...state, effects:fxStack }); window.__t=()=>t; window.__buildSequenceZip=buildSequenceZip; window.__exportRes=exportRes;
   addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT")return;
     if(e.code==="Space"){ e.preventDefault(); play(); }
     else if(e.key===","){ e.preventDefault(); stepFrame(-1); }
