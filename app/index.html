@@ -123,7 +123,12 @@
   /* ---------- controls ---------- */
   .controls{border-left:1px solid var(--hair);overflow:auto;background:linear-gradient(180deg,rgba(255,255,255,.012),transparent)}
   .cgroup{border-bottom:1px solid var(--hair);padding:13px 14px}
-  .cgroup h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;font-weight:600}
+  .cgroup h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+  .cgroup h4:hover{color:var(--txt)}
+  .cgroup h4::after{content:"▾";color:var(--faint);font-size:9px;font-weight:400}
+  .cgroup.collapsed h4::after{content:"▸"}
+  .cgroup.collapsed h4{margin-bottom:0}
+  .cgroup.collapsed > *:not(h4){display:none}
   .field{margin-bottom:12px}.field:last-child{margin-bottom:0}
   .field label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
   .field label b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
@@ -1028,7 +1033,9 @@ function createCanvasRenderer(canvas) {
   ["dragleave","dragend"].forEach(ev=>$("fontDrop").addEventListener(ev,e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); }));
   $("fontDrop").addEventListener("drop",e=>{ e.preventDefault(); $("fontDrop").classList.remove("drag"); const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) loadFontFile(f); });
 
-  function init(){ buildFontPicker(); buildFxAdd(); buildCards(); draw(true); window.__ready=true; }
+  function init(){ buildFontPicker(); buildFxAdd(); buildCards(); draw(true);
+    [...document.querySelectorAll(".controls .cgroup h4")].forEach(h=>h.addEventListener("click",()=>h.parentElement.classList.toggle("collapsed")));
+    window.__ready=true; }
   document.fonts&&document.fonts.ready ? document.fonts.ready.then(init) : init();
 </script>
 </body>
