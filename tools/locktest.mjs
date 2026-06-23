@@ -16,8 +16,10 @@ const errs = [];
 page.on('pageerror', e => errs.push(e.message));
 const read = () => page.evaluate(() => ({
   inDur: +document.getElementById('inDur').value, hold: +document.getElementById('hold').value,
-  outDur: +document.getElementById('outDur').value, animIn: document.getElementById('animIn').value,
-  ease: document.getElementById('ease').value, weight: +document.getElementById('weight').value }));
+  outDur: +document.getElementById('outDur').value,
+  animIn: document.querySelector('#animInPick .thumb.on')?.dataset.v,
+  ease: document.querySelector('#easePick .ethumb.on')?.dataset.v,
+  weight: +document.getElementById('weight').value }));
 const load = async () => { await page.goto('file://' + target, { waitUntil: 'load', timeout: 30000 }).catch(e => console.log('goto', e.message)); await wait(1200); };
 
 await load();
