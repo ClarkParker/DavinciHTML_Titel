@@ -1,19 +1,22 @@
 # Claude-Redesign-Prompt (zum Einfügen)
 
-> **Vor dem Senden anhängen:** `CLAUDE-REDESIGN-BRIEF.md` **und** die Screenshots aus
-> `design/current/` (workspace-16x9, workspace-9x16, right-panel, export-menu).
-> Nutze Claude mit **Artifacts**.
+> **Vor dem Senden anhängen:** `CLAUDE-REDESIGN-BRIEF.md`, die **fertige App `index.html`**
+> (das echte, self-contained Tool — im Browser öffnen zum Anschauen **und** als Anhang die *Ground
+> Truth* für CSS-Tokens/Struktur) **und** die beigefügten Screenshots (`current/…`: workspace-16x9,
+> workspace-9x16, right-panel, export-menu). Nutze Claude mit **Artifacts**.
 
 ---
 
 Du bist **Senior Product- & UI-Designer** für hochwertige Kreativ-Tools (Niveau: Linear, Vercel,
 Stripe, Arc, Figma). Liefere das Ergebnis als **interaktives Artifact**, das ich sofort live sehe.
 
-**Aufgabe — KEIN Neuentwurf, sondern Veredeln:** Im Anhang siehst du den **Ist-Zustand** eines bereits
-gebauten, voll funktionalen Tools („Kinetic Typography Studio"). Es macht aus *einer Textzeile*
-generativ schön animierte Titel, die man verfeinert, frame-genau scrubbt und **mit Alpha** nach
-DaVinci Resolve exportiert. **Hebe das vorhandene Design auf Award-Niveau** — gleiche Struktur und
-Funktion, aber ruhiger, edler, konsistenter. Bewahre, was funktioniert; repariere die Schwächen.
+**Aufgabe — KEIN Neuentwurf, sondern Veredeln:** Im Anhang liegt der **Ist-Zustand** eines bereits
+gebauten, voll funktionalen Tools („Kinetic Typography Studio"): die **echte `index.html`** (self-
+contained — öffne/inspiziere sie als *Ground Truth* für die aktuellen CSS-Tokens und die Struktur)
+plus Screenshots, die das Rendering zeigen. Es macht aus *einer Textzeile* generativ schön animierte
+Titel, die man verfeinert, frame-genau scrubbt und **mit Alpha** nach DaVinci Resolve exportiert.
+**Hebe das vorhandene Design auf Award-Niveau** — gleiche Struktur und Funktion, aber ruhiger, edler,
+konsistenter. Bewahre, was funktioniert; repariere die Schwächen.
 
 **Look & Feel:** **dark, modern, edel, stylish, simpel.** Premium und ruhig. *Kein* generischer
 SaaS-/Website-Builder-Look, *kein* Neon, *kein* Blau→Lila-Verlauf, *kein* reines Schwarz, keine

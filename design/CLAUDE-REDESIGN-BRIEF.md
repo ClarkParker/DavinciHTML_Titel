@@ -2,8 +2,9 @@
 
 > **Aufgabe ist NICHT „von null neu", sondern „das bestehende, gebaute Design veredeln".**
 > Diese Datei = der vollständige Kontext. Der einzufügende Auftrag steht in
-> `CLAUDE-REDESIGN-PROMPT.md`. **Hänge zusätzlich die Screenshots aus `design/current/` an**
-> (workspace-16x9, workspace-9x16, right-panel, export-menu) — sie zeigen den Ist-Zustand.
+> `CLAUDE-REDESIGN-PROMPT.md`. **Hänge zusätzlich an:** die **fertige `index.html`** (das echte,
+> self-contained Tool — Ground Truth für CSS/Struktur, im Browser öffenbar) **und** die Screenshots
+> aus `current/` (workspace-16x9, workspace-9x16, right-panel, export-menu) — sie zeigen den Ist-Zustand.
 >
 > Der ältere `CLAUDE-DESIGN-BRIEF.md` beschrieb den *Erst*-Entwurf vom Prototyp — diese Datei
 > ersetzt ihn für die Verbesserungsrunde und beschreibt das **real Gebaute**.
@@ -130,6 +131,6 @@ Defaults **außer** auf der Bühne (dort *ist* Transparenz gemeint).
 ## 10. So nutzt Du das Paket
 1. Öffne **Claude** (claude.ai, ein Modell mit **Artifacts**).
 2. Füge den Text aus **`CLAUDE-REDESIGN-PROMPT.md`** ein.
-3. Hänge **diese Datei** + die **Screenshots aus `design/current/`** an.
+3. Hänge an: **diese Datei** + die **fertige `index.html`** + die **Screenshots aus `current/`**.
 4. Lass das Artifact bauen, dann iterativ verfeinern („mach nur das rechte Panel ruhiger", …).
 5. Übernimm am Ende die **finalen Tokens/Komponenten** zurück in `app/app.src.html` (→ build → Tests).
